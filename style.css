@@ -1,0 +1,30 @@
+#mainWindow {
+    background-color: #1C86EE;
+    background-color: #458B74;
+    color: white;
+    font-weight: bold;
+    font-size: x-large;
+}
+
+#dayButton {
+    color: white;
+}
+
+GtkWindow {
+    background-color: red;
+}
+
+#weekdayLabel {
+    font-size: 75%;
+    /* font-weight: normal; */
+}
+
+#monthLabel {
+    font-size: xx-large;
+    font-weight: normal;
+}
+
+#highlight_day {
+    background-color: white;
+    color: red;
+}
