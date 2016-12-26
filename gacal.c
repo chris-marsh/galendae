@@ -83,8 +83,6 @@ int first_day_of_month(int month, int year) {
 void set_calendar() {
     GtkWidget *grid;
     GtkWidget *label;
-    int month = highlight_date.month;
-    int year = highlight_date.year;
     char temp[20];
     int line = 2, col;
     int first_day;
@@ -93,18 +91,18 @@ void set_calendar() {
     grid = gtk_bin_get_child(GTK_BIN(calendar_window));
 
     label = gtk_grid_get_child_at(GTK_GRID(grid), 1,0);
-    sprintf(temp, "%s %d", months[month-1].longName, year);
+    sprintf(temp, "%s %d", months[options.month-1].longName, options.year);
     gtk_label_set_text(GTK_LABEL(label), temp);
 
-    if ((month == 2) &&
-            ((!(year % 4) && (year % 100)) || !(year % 400))) {
-        months[month-1].num_days = 29;
+    if ((options.month == 2) &&
+            ((!(options.year % 4) && (options.year % 100)) || !(options.year % 400))) {
+        months[options.month-1].num_days = 29;
     }
-    first_day = (first_day_of_month(month, year) + options.weekday_start) % 7 - 2;
+    first_day = (first_day_of_month(options.month, options.year) + options.weekday_start) % 7 - 2;
 
     if (grid != NULL) {
         for (int day = 1-first_day; day<=35-first_day; day++) {
-            if (day<1 || day>months[month-1].num_days)
+            if (day<1 || day>months[options.month-1].num_days)
                 temp[0] = '\0';
             else 
                 sprintf(temp, "%d", day);
@@ -112,8 +110,8 @@ void set_calendar() {
             label = gtk_grid_get_child_at(GTK_GRID(grid), col, line);
             gtk_label_set_text(GTK_LABEL(label), temp);
             if (day == highlight_date.day &&
-                    month == highlight_date.month &&
-                    year == highlight_date.year)
+                    options.month == highlight_date.month &&
+                    options.year == highlight_date.year)
                 gtk_widget_set_name(GTK_WIDGET(label), "highlight_day");
             else
                 gtk_widget_set_name(GTK_WIDGET(label), "normal_day");
@@ -135,22 +133,43 @@ static void on_key_press (GtkWidget *window, GdkEventKey *eventkey, gpointer dat
             gtk_widget_destroy(window);
             break;
         case GDK_KEY_Left:
-            inc_month(-1, &highlight_date.month, &highlight_date.year);
+            inc_month(-1, &options.month, &options.year);
             set_calendar();
             break;
         case GDK_KEY_Right:
-            inc_month(1, &highlight_date.month, &highlight_date.year);
+            inc_month(1, &options.month, &options.year);
             set_calendar();
             break;
         case GDK_KEY_Up:
-            highlight_date.year++;
+            options.year++;
             set_calendar();
             break;
         case GDK_KEY_Down:
-            highlight_date.year--;
+            options.year--;
             set_calendar();
             break;
     }
+}
+
+
+gboolean draw_callback (GtkWidget *widget, cairo_t *cr, gpointer data) {
+    GdkRGBA color;
+    GtkStyleContext *context;
+    int cell_width = gtk_widget_get_allocated_width(GTK_WIDGET(widget)) / 7; 
+    int cell_height = gtk_widget_get_allocated_height(GTK_WIDGET(widget)) / 5; 
+    
+    context = gtk_widget_get_style_context (widget);
+    gtk_style_context_get_color (context, gtk_style_context_get_state (context), &color);
+    gdk_cairo_set_source_rgba (cr, &color);
+
+    cairo_arc (cr, (3*cell_width)-(cell_width/2),
+            (5*cell_height)-(cell_height/2),
+            (cell_height/2) - 1,
+            0, 2 * G_PI);
+
+    cairo_stroke (cr);
+
+    return FALSE;
 }
 
 
@@ -160,6 +179,7 @@ GtkWidget* init_app() {
     GtkWidget *button;
     GtkWidget *label;
     GtkWidget *icon;
+    GtkWidget *drawing_area;
     GtkCssProvider *provider;
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -193,6 +213,12 @@ GtkWidget* init_app() {
         gtk_grid_attach(GTK_GRID(grid), label, day,1,1,1);
     }
 
+    drawing_area = gtk_drawing_area_new ();
+    g_signal_connect (G_OBJECT (drawing_area), "draw",
+            G_CALLBACK (draw_callback), NULL);
+
+    gtk_grid_attach(GTK_GRID(grid), drawing_area, 0, 2, 7, 5);
+    
     for (int row = 2; row<7; row++) {
         for (int column=0; column<7; column++) {
             label = gtk_label_new("00");
@@ -219,6 +245,9 @@ int main(int argc, char *argv[]) {
     highlight_date.day= now->tm_mday;
     highlight_date.month = now->tm_mon+1;
     highlight_date.year = now->tm_year+1900;
+
+    options.month = highlight_date.month;
+    options.year = highlight_date.year;
 
     gtk_init(&argc, &argv);
     calendar_window = init_app();
