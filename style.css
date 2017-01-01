@@ -1,17 +1,8 @@
-#mainWindow {
-    background-color: #1C86EE;
+#mainWindow, #drawAreax {
     background-color: #458B74;
     color: white;
     font-weight: bold;
     font-size: x-large;
-}
-
-#dayButton {
-    color: white;
-}
-
-GtkWindow {
-    background-color: red;
 }
 
 #weekdayLabel {
@@ -24,7 +15,3 @@ GtkWindow {
     font-weight: normal;
 }
 
-#highlight_day {
-    background-color: white;
-    color: #458B74;
-}
