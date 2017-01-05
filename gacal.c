@@ -371,9 +371,6 @@ static void show_window(CalendarPtr cal)
 {
     gint xpos, ypos;
 
-    GdkWindow *win = gtk_widget_get_window(GTK_WIDGET(cal->window));
-    gdk_window_set_decorations(GDK_WINDOW(win), GDK_DECOR_BORDER);
-
     gtk_window_set_position(GTK_WINDOW(cal->window), GTK_WIN_POS_CENTER);
     gtk_window_get_position(GTK_WINDOW(cal->window), &xpos, &ypos);
     gtk_window_move(GTK_WINDOW(cal->window), cal->x_offset + xpos,  cal->y_offset + ypos);

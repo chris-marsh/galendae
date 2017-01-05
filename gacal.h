@@ -28,8 +28,6 @@
 #endif
 
 #define VERSION "0.1"
-#define CAL_HEIGHT 8
-#define CAL_WIDTH 36 /* Visible is 21,allow control chars(2*7) and term(1) */
 #define MAX_YEAR (INT_MAX / 12 - 1)  /* Limited by the inc_month function */
 
 typedef enum{
