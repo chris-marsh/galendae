@@ -24,24 +24,25 @@
 /*
  * Output help/usage and exit the program
  */
-static void usage(int exit_code) {
-    puts("");
-    puts("USAGE");
-    puts("    acal [options] [ [day] [month] [year] ]");
-    puts("");
+static void usage(int exit_code)
+{
+    puts("\nUSAGE");
+    puts("    agcal [options] [ [day] [month] [year] ]\n");
     puts("DESCRIPTION");
-    puts("    Another CALendar displays a basic calendar. If no arguments");
-    puts("    are specified, the current month is displayed.");
-    puts("");
+    puts("    Another (g)CALendar displays a gui calendar. If no arguments");
+    puts("    are specified, the current month is shown. Keys:");
+    puts("        h|Left    - decrease month");
+    puts("        l|Right   - increase month");
+    puts("        k|Up      - increase year");
+    puts("        j|Down    - decrease year\n");
+    puts("        g|Home    - return to current date\n");
+    puts("        q|Esc     - exit the calendar\n");
     puts("OPTIONS");
-    puts("    -s, --sunday  - use Sunday as the first day of the week");
-    puts("    -m, --monday  - use Monday as the first day of the week");
-    puts("    -h, --help    - display this help");
-    puts("    -v, --version - output version information");
-    puts("");
-    puts("EXAMPLES");
-    puts("    acal 12 2016");
-    puts("    acal 20 07 1971");
+    puts("    -x, --xoffset  - move the window position +/- horizontally");
+    puts("    -s, --yoffset  - move the window position +/- vertically");
+    puts("    -m, --monday   - use Monday as the first day of the week");
+    puts("    -h, --help     - display this help");
+    puts("    -v, --version  - output version information\n");
 
     exit(exit_code);
 }
@@ -50,8 +51,9 @@ static void usage(int exit_code) {
 /*
  * Ouput a version string and exit the program
  */
-static void version(void) {
-    printf("acal - Another CALendar %s (compiled %s)\n", VERSION, __DATE__);
+static void version(void)
+{
+    printf("gacal - Another (g)CALendar %s (compiled %s)\n", VERSION, __DATE__);
     exit(0);
 }
 
@@ -59,7 +61,8 @@ static void version(void) {
 /*
  * Ouput an error message and exit the program with an error statuis code
  */
-static void error(char *message) {
+static void error(char *message)
+{
     puts(message);
     exit(-1);
 }
@@ -69,12 +72,13 @@ static void error(char *message) {
  * Parse the user given command line to set options
  */
 static int get_command_line_options(
-        int argc, char *argv[],
-        struct Date *calendar,
-        struct Date *highlight) {
+        int argc, char *argv[], Options *options)
+{
     int optc = 0;
 
     static struct option const longopts[] = {
+        {"xoffset",            1, NULL, 'x'},
+        {"yoffset",            1, NULL, 'y'},
         {"sunday",   no_argument, NULL, 's'},
         {"monday",   no_argument, NULL, 'm'},
         {"help",     no_argument, NULL, 'h'},
@@ -82,13 +86,19 @@ static int get_command_line_options(
         {NULL, 0, NULL, 0}
     };
 
-    while ((optc = getopt_long(argc, argv, "smhv", longopts, NULL)) != -1) {
+    while ((optc = getopt_long(argc, argv, "x:y:smhv", longopts, NULL)) != -1) {
         switch (optc) {
+            case 'x':
+               options->x_offset = atoi(optarg);
+                break;
+            case 'y':
+                options->y_offset = atoi(optarg);
+                break;
             case 's':
-                set_weekday_start(SUNDAY);
+                options->week_start = SUNDAY;
                 break;
             case 'm':
-                set_weekday_start(MONDAY);
+                options->week_start = MONDAY;;
                 break;
             case 'h':
                 usage(0);
@@ -103,43 +113,45 @@ static int get_command_line_options(
 
     if (optind < argc) {
         if (argc-optind == 3) {
-            highlight->day = atoi(argv[optind]);
-            highlight->month = atoi(argv[optind+1]);
-            highlight->year = atoi(argv[optind+2]);
-                calendar->month = highlight->month;
-            calendar->year = highlight->year;
+            options->highlight.day = atoi(argv[optind]);
+            options->highlight.month = atoi(argv[optind+1]);
+            options->highlight.year = atoi(argv[optind+2]);
+                options->month = options->highlight.month;
+            options->year = options->highlight.year;
         } else if (argc-optind == 2) {
-                calendar->month = atoi(argv[optind]);
-            calendar->year = atoi(argv[optind+1]);
+                options->month = atoi(argv[optind]);
+            options->year = atoi(argv[optind+1]);
         } else
             usage(-1);
     }
 
-    if (calendar->month < 1 || calendar->month > 12)
-        error("acal: illegal month value: use 1-12");
+    if (options->month < 1 || options->month > 12)
+        error("gacal: illegal month value: use 1-12");
 
-    if (calendar->year < 1 || calendar->year >= MAX_YEAR)
-        error("acal: illegal year value: out of range");
+    if (options->year < 1 || options->year >= MAX_YEAR)
+        error("gacal: illegal year value: out of range");
 
     return optc;
 }
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
+    Options options;
 
-    struct Date highlight_date = today();
-    struct Date calendar_date = highlight_date;
+    options.highlight = today();
+    options.month = options.highlight.month;
+    options.year = options.highlight.year;
+    options.week_start = MONDAY;
+    options.x_offset = 0;
+    options.y_offset = 0;
 
-    get_command_line_options(argc, argv,
-        &calendar_date, &highlight_date);
-
-    set_highlight_date(highlight_date);
-    set_current_date(calendar_date);
+    get_command_line_options(argc, argv, &options);
 
     gtk_init(&argc, &argv);
-    init_app();
-    set_calendar();
+    CalendarPtr calendar = create_calendar(options);
     gtk_main();
+    destroy_calendar(calendar);
     return 0;
 }
 

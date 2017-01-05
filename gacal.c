@@ -25,7 +25,7 @@
 struct Weekdays {
     char *longname;
     char *shortname;
-} static weekdays[] = {
+} weekdays[] = {
     {"Sunday", "Su"},
     {"Monday", "Mo"},
     {"Tuesday", "Tu"},
@@ -38,8 +38,8 @@ struct Weekdays {
 
 struct Month {
     char *longName;
-    int num_days;
-} static months[] = {
+    unsigned int num_days;
+} months[] = {
     {"January", 31},
     {"February", 28},
     {"March", 31},
@@ -55,29 +55,32 @@ struct Month {
 };
 
 
-struct Point {
-    int row;
-    int column;
-};
+typedef struct {
+    unsigned int row;
+    unsigned int  column;
+} Point;
 
 
-struct App {
+struct Calendar {
     GtkWidget *window;
-    int month;
-    int year;
-    enum Days_of_Week weekday_start;
-    struct Date highlight_date;
-    struct Point highlight_cell;
-} static app = { NULL, 0, 0, MONDAY, { 0, 0, 0}, { 0, 0 } };
+    unsigned int month;
+    unsigned int year;
+    Days_of_Week week_start;
+    Date highlight_date;
+    Point highlight_cell;
+    int x_offset;
+    int y_offset;
+};
 
 
 /*
  * Return struct with current system date
  */
-struct Date today(void) {
+Date today(void)
+{
     time_t t = time(0);
     struct tm *now = localtime(&t);
-    struct Date date = {
+    Date date = {
         now->tm_mday,
         now->tm_mon+1,
         now->tm_year+1900
@@ -86,38 +89,26 @@ struct Date today(void) {
 }
 
 
-/*
- * Set which day of the week will be the calendars first column
- */
-void set_weekday_start(enum Days_of_Week day) {
-    app.weekday_start = day;
-}
-
-
-/*
- * Set date to highlight on the calendar
- */
-void set_highlight_date(struct Date date) {
-    app.highlight_date = date;
-}
-
-
-void set_current_date(struct Date date) {
-    app.month = date.month;
-    app.year = date.year;
-}
-
-
-void inc_month(int num, int *month, int *year) {
+static int inc_month(int num, unsigned int *month, unsigned int *year)
+{
     int tempYear  = *year;
     int tempMonth = *month - 1;
 
     *year = (tempYear * 12 + tempMonth + num) / 12;
     *month = (tempYear * 12 + tempMonth + num) % 12 + 1;
+
+    if (*year < 1 || *month < 1) {
+        *year = tempYear;
+        *month = tempMonth + 1;
+        return 0;
+    } else {
+        return 1;
+    }
 }
 
 
-int first_day_of_month(int month, int year) {
+static int first_day_of_month(int month, int year)
+{
     if (month < 3) {
         month += 12;
         year--;
@@ -129,7 +120,8 @@ int first_day_of_month(int month, int year) {
             year + (year / 4)) % 7;
 }
 
-static GtkWidget* find_child(GtkWidget* parent, const gchar* name) {
+static GtkWidget* find_child(GtkWidget* parent, const gchar* name)
+{
     if (g_ascii_strcasecmp(gtk_widget_get_name((GtkWidget*)parent), (gchar*)name) == 0) { 
         return parent;
     }
@@ -153,53 +145,55 @@ static GtkWidget* find_child(GtkWidget* parent, const gchar* name) {
 }
 
 
-void set_calendar() {
+static void update_calendar(CalendarPtr cal)
+{
     GtkWidget *grid;
     GtkWidget *label;
     char temp[20];
-    int day;
+    unsigned int day;
 
-    grid = gtk_bin_get_child(GTK_BIN(app.window));
+    grid = gtk_bin_get_child(GTK_BIN(cal->window));
     label = gtk_grid_get_child_at(GTK_GRID(grid), 1,0);
 
-    sprintf(temp, "%s %d", months[app.month-1].longName, app.year);
+    sprintf(temp, "%s %d", months[cal->month-1].longName, cal->year);
     gtk_label_set_text(GTK_LABEL(label), temp);
 
-    if ((app.month == 2) &&
-            ((!(app.year % 4) && (app.year % 100)) || !(app.year % 400))) {
-        months[app.month-1].num_days = 29;
+    if ((cal->month == 2) &&
+            ((!(cal->year % 4) && (cal->year % 100)) || !(cal->year % 400))) {
+        months[cal->month-1].num_days = 29;
     }
 
     if (grid != NULL) {
-        day = 1 - (first_day_of_month(app.month, app.year) -
-                app.weekday_start + 7) % 7;
+        day = 1 - (first_day_of_month(cal->month, cal->year) -
+                cal->week_start + 7) % 7;
         for (int line = 2; line <=7; line++) {
             for (int col=0; col<7; col++) {
-                if (day>0 && day<=months[app.month-1].num_days) 
+                if (day>0 && day<=months[cal->month-1].num_days) 
                     sprintf(temp, "%d", day);
                 else
                     sprintf(temp, "%c", '\0');
 
                 label = gtk_grid_get_child_at(GTK_GRID(grid), col, line);
                 gtk_label_set_text(GTK_LABEL(label), temp);
-                if (day == app.highlight_date.day &&
-                        app.month == app.highlight_date.month &&
-                        app.year == app.highlight_date.year) {
-                    app.highlight_cell.column = col+1;
-                    app.highlight_cell.row = line-1;
+                if (day == cal->highlight_date.day &&
+                        cal->month == cal->highlight_date.month &&
+                        cal->year == cal->highlight_date.year) {
+                    cal->highlight_cell.column = col+1;
+                    cal->highlight_cell.row = line-1;
                 }
                 day++;
             }
         }
     }
-    GtkWidget *da = find_child(app.window, "drawArea");
+    GtkWidget *da = find_child(cal->window, "drawArea");
     gtk_widget_queue_draw_area(da, 0, 0,
             gtk_widget_get_allocated_width(GTK_WIDGET(da)),
             gtk_widget_get_allocated_height(GTK_WIDGET(da)));
 }
 
 
-static void on_arrow_hoover(GtkWidget *UNUSED(eventbox), GdkEvent *event) {
+static void on_arrow_hover(GtkWidget *UNUSED(eventbox), GdkEvent *event, CalendarPtr cal)
+{
     GdkCursor *cursor;
     GdkWindow *window;
 
@@ -209,48 +203,65 @@ static void on_arrow_hoover(GtkWidget *UNUSED(eventbox), GdkEvent *event) {
         cursor = gdk_cursor_new_for_display(gdk_display_get_default(), GDK_ARROW);
     }
 
-    window = gtk_widget_get_window(GTK_WIDGET(app.window));
+    window = gtk_widget_get_window(GTK_WIDGET(cal->window));
     gdk_window_set_cursor(window, cursor);
 }
 
 
-static void on_arrow_click(GtkWidget *eventbox) {
+static void on_arrow_click(GtkWidget *eventbox, GdkEvent *UNUSED(event), CalendarPtr cal)
+{
+    int success = 0;
     if (gtk_widget_get_name(GTK_WIDGET(eventbox))[0] == 'l') {
-        inc_month(-1, &app.month, &app.year);
+        success = inc_month(-1, &cal->month, &cal->year);
     } else {
-        inc_month(1, &app.month, &app.year);
+        success = inc_month(1, &cal->month, &cal->year);
     }
-    set_calendar();
+    if (success) update_calendar(cal);
 }
 
 
-static void on_key_press (GtkWidget *window, GdkEventKey *eventkey) {
+static void on_key_press (GtkWidget *window, GdkEventKey *eventkey, CalendarPtr cal)
+{
     switch (eventkey->keyval) {
-        case GDK_KEY_Escape:
         case GDK_KEY_q:
+        case GDK_KEY_Escape:
             gtk_widget_destroy(window);
             break;
+        case GDK_KEY_h:
         case GDK_KEY_Left:
-            inc_month(-1, &app.month, &app.year);
-            set_calendar();
+            if (inc_month(-1, &cal->month, &cal->year))
+                update_calendar(cal);
             break;
+        case GDK_KEY_l:
         case GDK_KEY_Right:
-            inc_month(1, &app.month, &app.year);
-            set_calendar();
+            if (inc_month(1, &cal->month, &cal->year))
+                update_calendar(cal);
             break;
+        case GDK_KEY_k:
         case GDK_KEY_Up:
-            app.year++;
-            set_calendar();
+            if (cal->year < MAX_YEAR) {
+                cal->year++;
+                update_calendar(cal);
+            }
             break;
+        case GDK_KEY_j:
         case GDK_KEY_Down:
-            app.year--;
-            set_calendar();
+            if (cal->year > 1) {
+                cal->year--;
+                update_calendar(cal);
+            }
             break;
+        case GDK_KEY_g:
+        case GDK_KEY_Home:
+            cal->month = cal->highlight_date.month;
+            cal->year = cal->highlight_date.year;
+            update_calendar(cal);
     }
 }
 
 
-static gboolean draw_callback (GtkWidget *widget, cairo_t *cr) {
+static gboolean draw_callback (GtkWidget *widget, cairo_t *cr, CalendarPtr cal)
+{
     GdkRGBA color;
     GtkStyleContext *context;
     int cell_width = gtk_widget_get_allocated_width(GTK_WIDGET(widget)) / 7;
@@ -260,11 +271,11 @@ static gboolean draw_callback (GtkWidget *widget, cairo_t *cr) {
     gtk_style_context_get_color (context, gtk_style_context_get_state (context), &color);
     gdk_cairo_set_source_rgba (cr, &color);
 
-    if (app.month == app.highlight_date.month &&
-            app.year == app.highlight_date.year) {
+    if (cal->month == cal->highlight_date.month &&
+            cal->year == cal->highlight_date.year) {
         cairo_arc (cr,
-                (app.highlight_cell.column*cell_width)-(cell_width/2),
-                (app.highlight_cell.row*cell_height)-(cell_height/2) - 1,
+                (cal->highlight_cell.column*cell_width)-(cell_width/2),
+                (cal->highlight_cell.row*cell_height)-(cell_height/2) - 1,
                 (cell_height/2) - 1,
                 0, 2 * G_PI);
     }
@@ -274,7 +285,9 @@ static gboolean draw_callback (GtkWidget *widget, cairo_t *cr) {
 }
 
 
-void init_app() {
+GtkWidget* init_widgets(CalendarPtr cal)
+{
+    GtkWidget *window;
     GtkWidget *grid;
     GtkWidget *label;
     GtkWidget *eventbox;
@@ -282,23 +295,28 @@ void init_app() {
     GtkWidget *drawing_area;
     GtkCssProvider *provider;
 
-    app.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    g_signal_connect(GTK_WINDOW(app.window), "key_release_event", G_CALLBACK(on_key_press), NULL);
-    g_signal_connect(GTK_WINDOW(app.window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
-    gtk_widget_set_name(GTK_WIDGET(app.window), "mainWindow");
-    gtk_window_set_title(GTK_WINDOW(app.window), "Calendar");
-    gtk_window_set_type_hint(GTK_WINDOW(app.window), GDK_WINDOW_TYPE_HINT_DIALOG);
-    gtk_container_set_border_width(GTK_CONTAINER(app.window), 10);
+    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
+    gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
+    gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+    gtk_window_set_skip_taskbar_hint(GTK_WINDOW(window), TRUE);
+    gtk_window_stick(GTK_WINDOW(window));
+    gtk_widget_set_name(GTK_WIDGET(window), "mainWindow");
+    gtk_window_set_title(GTK_WINDOW(window), "Calendar");
+    g_signal_connect(GTK_WINDOW(window), "key_release_event", G_CALLBACK(on_key_press), cal);
+    g_signal_connect(GTK_WINDOW(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(GTK_WINDOW(window), "focus_out_event", G_CALLBACK(gtk_widget_destroy), NULL);
+    gtk_container_set_border_width(GTK_CONTAINER(window), 10);
 
     grid = gtk_grid_new();
     gtk_widget_set_name(GTK_WIDGET(grid), "grid");
-    gtk_container_add(GTK_CONTAINER(app.window), grid);
+    gtk_container_add(GTK_CONTAINER(window), grid);
 
     eventbox = gtk_event_box_new();
     gtk_widget_set_name(GTK_WIDGET(eventbox), "left_eventbox");
-    g_signal_connect(GTK_WIDGET(eventbox), "enter-notify-event", G_CALLBACK(on_arrow_hoover), NULL);
-    g_signal_connect(GTK_WIDGET(eventbox), "leave-notify-event", G_CALLBACK(on_arrow_hoover), NULL);
-    g_signal_connect(GTK_WIDGET(eventbox), "button-release-event", G_CALLBACK(on_arrow_click), NULL);
+    g_signal_connect(GTK_WIDGET(eventbox), "enter-notify-event", G_CALLBACK(on_arrow_hover), cal);
+    g_signal_connect(GTK_WIDGET(eventbox), "leave-notify-event", G_CALLBACK(on_arrow_hover), cal);
+    g_signal_connect(GTK_WIDGET(eventbox), "button-release-event", G_CALLBACK(on_arrow_click), cal);
     gtk_grid_attach(GTK_GRID(grid), eventbox, 0,0,1,1);
     icon = gtk_image_new_from_file("images/left.png");
     gtk_grid_attach(GTK_GRID(grid), icon, 0,0,1,1);
@@ -309,15 +327,15 @@ void init_app() {
 
     eventbox = gtk_event_box_new();
     gtk_widget_set_name(GTK_WIDGET(eventbox), "right_eventbox");
-    g_signal_connect(GTK_WIDGET(eventbox), "enter-notify-event", G_CALLBACK(on_arrow_hoover), NULL);
-    g_signal_connect(GTK_WIDGET(eventbox), "leave-notify-event", G_CALLBACK(on_arrow_hoover), NULL);
-    g_signal_connect(GTK_WIDGET(eventbox), "button-release-event", G_CALLBACK(on_arrow_click), NULL);
+    g_signal_connect(GTK_WIDGET(eventbox), "enter-notify-event", G_CALLBACK(on_arrow_hover), cal);
+    g_signal_connect(GTK_WIDGET(eventbox), "leave-notify-event", G_CALLBACK(on_arrow_hover), cal);
+    g_signal_connect(GTK_WIDGET(eventbox), "button-release-event", G_CALLBACK(on_arrow_click), cal);
     gtk_grid_attach(GTK_GRID(grid), eventbox, 6,0,1,1);
     icon = gtk_image_new_from_file("images/right.png");
     gtk_grid_attach(GTK_GRID(grid), icon, 6,0,1,1);
 
     for (int day =0; day<7; day++) {
-        label = gtk_label_new(weekdays[(day+app.weekday_start) % 7].shortname);
+        label = gtk_label_new(weekdays[(day+cal->week_start) % 7].shortname);
         gtk_widget_set_name(GTK_WIDGET(label), "weekdayLabel");
         gtk_widget_set_margin_top(GTK_WIDGET(label), 15);
         gtk_widget_set_margin_bottom(GTK_WIDGET(label), 15);
@@ -326,7 +344,7 @@ void init_app() {
 
     drawing_area = gtk_drawing_area_new ();
     gtk_widget_set_name(GTK_WIDGET(drawing_area), "drawArea");
-    g_signal_connect (G_OBJECT (drawing_area), "draw", G_CALLBACK (draw_callback), NULL);
+    g_signal_connect (G_OBJECT (drawing_area), "draw", G_CALLBACK (draw_callback), cal);
     gtk_grid_attach(GTK_GRID(grid), drawing_area, 0, 2, 7, 5);
 
     for (int row = 2; row<8; row++) {
@@ -345,6 +363,47 @@ void init_app() {
     gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
             GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
 
-    gtk_widget_show_all(app.window);
+    return window;
+}
+
+
+static void show_window(CalendarPtr cal)
+{
+    gint xpos, ypos;
+
+    GdkWindow *win = gtk_widget_get_window(GTK_WIDGET(cal->window));
+    gdk_window_set_decorations(GDK_WINDOW(win), GDK_DECOR_BORDER);
+
+    gtk_window_set_position(GTK_WINDOW(cal->window), GTK_WIN_POS_CENTER);
+    gtk_window_get_position(GTK_WINDOW(cal->window), &xpos, &ypos);
+    gtk_window_move(GTK_WINDOW(cal->window), cal->x_offset + xpos,  cal->y_offset + ypos);
+    gtk_widget_show_all(cal->window);
+}
+
+
+CalendarPtr create_calendar(Options options)
+{
+    CalendarPtr cal = malloc(sizeof *cal);
+
+    if (cal) {
+        cal->month = options.month;
+        cal->year = options.year;
+        cal->highlight_date = options.highlight;
+        cal->x_offset = options.x_offset;
+        cal->y_offset = options.y_offset;
+        cal->week_start = options.week_start;
+        cal->window = init_widgets(cal);
+        update_calendar(cal);
+        show_window(cal);
+    }
+
+    return cal;
+}
+
+void destroy_calendar(CalendarPtr cal)
+{
+    if (gtk_main_level() !=0 && cal->window != NULL)
+        gtk_widget_destroy(cal->window);
+    free(cal);
 }
 

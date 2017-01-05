@@ -32,7 +32,7 @@
 #define CAL_WIDTH 36 /* Visible is 21,allow control chars(2*7) and term(1) */
 #define MAX_YEAR (INT_MAX / 12 - 1)  /* Limited by the inc_month function */
 
-enum Days_of_Week{
+typedef enum{
     SUNDAY = 0,
     MONDAY,
     TUESDAY,
@@ -40,19 +40,27 @@ enum Days_of_Week{
     THURSDAY,
     FRIDAY,
     SATURDAY
-};
+} Days_of_Week;
 
-struct Date {
-    int day;
+typedef struct {
+    unsigned int day;
+    unsigned int month;
+    unsigned int year;
+} Date;
+
+typedef struct {
+    int x_offset;
+    int y_offset;
     int month;
     int year;
-};
+    Date highlight;
+    Days_of_Week week_start;
+} Options;
 
-struct Date today(void);
-void set_weekday_start(enum Days_of_Week day);
-void set_highlight_date(struct Date Date);
-void set_current_date(struct Date Date);
-void init_app();
-void set_calendar();
+typedef struct Calendar* CalendarPtr;
+
+CalendarPtr create_calendar(Options options);
+void destroy_calendar(CalendarPtr calendar);
+Date today(void);
 
 #endif

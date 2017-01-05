@@ -1,5 +1,6 @@
 CC=gcc
-C=FLAGS=-std=c99 -g -Wall -Wextra -pedantic
+CFLAGS=-std=c99 -Wall -Wextra -pedantic -O3
+# CFLAGS=-std=c99 -Wall -Wextra -pedantic -g
 GTKFLAGS=`pkg-config --cflags --libs gtk+-3.0`
 GTKLIBS=`pkg-config --cflags --libs gtk+-3.0`
 
