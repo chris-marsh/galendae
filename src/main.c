@@ -31,7 +31,7 @@
 static void usage(int exit_code)
 {
     puts("\nUSAGE");
-    puts("    galandae [OPTION ...] \n");
+    puts("    galendae [OPTION ...] \n");
     puts("DESCRIPTION");
     puts("    Galandae displays a gui calendar. Keys:");
     puts("        h|Left    - decrease month");

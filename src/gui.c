@@ -284,7 +284,6 @@ GtkWidget* init_widgets(CalendarPtr cal)
     GtkWidget *grid;
     GtkWidget *label;
     GtkWidget *eventbox;
-    GtkWidget *icon;
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window), "Calendar");
@@ -313,14 +312,10 @@ GtkWidget* init_widgets(CalendarPtr cal)
     g_signal_connect(GTK_WIDGET(eventbox), "leave-notify-event", G_CALLBACK(on_arrow_hover), cal);
     g_signal_connect(GTK_WIDGET(eventbox), "button-release-event", G_CALLBACK(on_arrow_click), cal);
     gtk_grid_attach(GTK_GRID(grid), eventbox, 0,0,1,1);
-    if( access( "images/left.png", F_OK ) != -1 ) {
-        icon = gtk_image_new_from_file("images/left.png");
-        gtk_grid_attach(GTK_GRID(grid), icon, 0,0,1,1);
-    } else {
-        label = gtk_label_new("<");
-        gtk_widget_set_name(GTK_WIDGET(label), "leftArrow");
-        gtk_grid_attach(GTK_GRID(grid), label, 0,0,1,1);
-    }
+
+    label = gtk_label_new("<");
+    gtk_widget_set_name(GTK_WIDGET(label), "leftArrow");
+    gtk_grid_attach(GTK_GRID(grid), label, 0,0,1,1);
 
     label = gtk_label_new("Month Year");
     gtk_widget_set_name(GTK_WIDGET(label), "monthLabel");
@@ -332,14 +327,10 @@ GtkWidget* init_widgets(CalendarPtr cal)
     g_signal_connect(GTK_WIDGET(eventbox), "leave-notify-event", G_CALLBACK(on_arrow_hover), cal);
     g_signal_connect(GTK_WIDGET(eventbox), "button-release-event", G_CALLBACK(on_arrow_click), cal);
     gtk_grid_attach(GTK_GRID(grid), eventbox, 6,0,1,1);
-    if( access( "images/right.png", F_OK ) != -1 ) {
-        icon = gtk_image_new_from_file("images/right.png");
-        gtk_grid_attach(GTK_GRID(grid), icon, 6,0,1,1);
-    } else {
-        label = gtk_label_new(">");
-        gtk_widget_set_name(GTK_WIDGET(label), "rightArrow");
-        gtk_grid_attach(GTK_GRID(grid), label, 6,0,1,1);
-    }
+
+    label = gtk_label_new(">");
+    gtk_widget_set_name(GTK_WIDGET(label), "rightArrow");
+    gtk_grid_attach(GTK_GRID(grid), label, 6,0,1,1);
 
     for (int day =0; day<7; day++) {
         label = gtk_label_new(weekdays[(day+cal->week_start) % 7].shortname);
@@ -395,7 +386,7 @@ void set_style(CalendarPtr cal)
 static void show_calendar(CalendarPtr cal)
 {
     gint x_pos = 0, y_pos = 0;
-    
+
     gtk_window_set_position(GTK_WINDOW(cal->window), cal->position);
     gtk_window_get_position(GTK_WINDOW(cal->window), &x_pos, &y_pos);
     gtk_window_move(GTK_WINDOW(cal->window), cal->x_offset + x_pos,  cal->y_offset + y_pos);
@@ -406,30 +397,30 @@ static void show_calendar(CalendarPtr cal)
 
 void set_default_config(CalendarPtr cal)
 {
-        cal->highlight_date = today();
-        cal->month = cal->highlight_date.month;
-        cal->year = cal->highlight_date.year;
-        cal->week_start = MONDAY;
+    cal->highlight_date = today();
+    cal->month = cal->highlight_date.month;
+    cal->year = cal->highlight_date.year;
+    cal->week_start = MONDAY;
 
-        cal->close_on_unfocus = 0;
-        cal->position = GTK_WIN_POS_NONE;
-        cal->x_offset = 0;
-        cal->y_offset = 0;
+    cal->close_on_unfocus = 0;
+    cal->position = GTK_WIN_POS_NONE;
+    cal->x_offset = 0;
+    cal->y_offset = 0;
 
-        cal->background_color = strdup("#afafaf");
-        cal->foreground_color = strdup("#000000");
+    cal->background_color = strdup("#afafaf");
+    cal->foreground_color = strdup("#000000");
 
-        cal->month_font_size = strdup("1.0em");
-        cal->month_font_weight = strdup("normal");
+    cal->month_font_size = strdup("1.0em");
+    cal->month_font_weight = strdup("normal");
 
-        cal->day_font_size = strdup("1.0em");
-        cal->day_font_weight = strdup("normal");
+    cal->day_font_size = strdup("1.0em");
+    cal->day_font_weight = strdup("normal");
 
-        cal->date_font_size = strdup("1.0em");
-        cal->date_font_weight = strdup("normal");
+    cal->date_font_size = strdup("1.0em");
+    cal->date_font_weight = strdup("normal");
 
-        cal->arrow_font_size = strdup("1.0em");
-        cal->arrow_font_weight = strdup("normal");
+    cal->arrow_font_size = strdup("1.0em");
+    cal->arrow_font_weight = strdup("normal");
 }
 
 
@@ -439,13 +430,13 @@ CalendarPtr create_calendar(char *config_filename)
 
     if (cal) {
         set_default_config(cal);
-        
+
         Config *config = read_config_file(config_filename);
         if (config) {
             Option option;
             while (config != NULL) {
                 option = pop_option(&config);
-                
+
                 if (strcmp(option.key, "close_on_unfocus") == 0)
                     cal->close_on_unfocus = atoi(option.value);
 
@@ -468,7 +459,7 @@ CalendarPtr create_calendar(char *config_filename)
                     strfcpy(option.value, &cal->background_color);
                 if (strcmp(option.key, "foreground_color") == 0)
                     strfcpy(option.value, &cal->foreground_color);
-                
+
                 if (strcmp(option.key, "month_font_size") == 0){
                     strfcpy(option.value, &cal->month_font_size);
                 }

@@ -6,10 +6,11 @@ A basic popup calendar that can be styled to match workspace themes.
 
 [![sample screenshot](http://i.imgur.com/G4HiuPzb.png)](http://i.imgur.com/G4HiuPz.png)
 [![sample screenshot](http://i.imgur.com/84ScLynb.png)](http://i.imgur.com/84ScLyn.png)
+[![sample screenshot](http://i.imgur.com/5fM1v8d.png)](http://i.imgur.com/5fM1v8db.png)
 
 ## Useage
 
-    galandae [OPTION ...]
+    galendae [OPTION ...]
 
     DESCRIPTION
 
@@ -26,3 +27,7 @@ A basic popup calendar that can be styled to match workspace themes.
         -c, --config FILE   - config file to load
         -h, --help          - display this help and exit
         -v, --version       - output version information
+
+## Whats in a name
+
+Galendae is derived from the Roman word [Kalendae](https://en.wikipedia.org/wiki/Calends), meaning the first day of the month. I though Kalendae sounded like a KDE application and since I was using GTK+, Galendae was born.

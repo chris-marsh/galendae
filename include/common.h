@@ -19,7 +19,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define APP_NAME "galandae"
+#define APP_NAME "galendae"
 #define VERSION "1.0"
 
 #ifndef TRUE
