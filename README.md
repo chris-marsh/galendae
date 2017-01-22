@@ -30,4 +30,4 @@ A basic popup calendar that can be styled to match workspace themes.
 
 ## Whats in a name
 
-Galendae is derived from the Roman word [Kalendae](https://en.wikipedia.org/wiki/Calends), meaning the first day of the month. I though Kalendae sounded like a KDE application and since I was using GTK+, Galendae was born.
+Galendae is derived from the Roman word [Kalendae](https://en.wikipedia.org/wiki/Calends), meaning the first day of the month. I thought Kalendae sounded like a KDE application and since I was using GTK+, Galendae was born.
