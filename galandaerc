@@ -1,0 +1,25 @@
+# Galandae config file
+
+# Window settings
+close_on_unfocus=0
+position=none
+x_offset=725
+y_offset=38
+background_color=#222222
+foreground_color=#dfdfdf
+
+# Month font
+month_font_size=xx-large
+month_font_weight=normal
+
+# Weekday font
+day_font_size=75%
+day_font_weight=normal
+
+# Date number font
+date_font_size=x-large
+date_font_weight=bold
+
+# Arrow font
+arrow_font_size = xx-large
+arrow_font_weight = bold

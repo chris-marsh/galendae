@@ -1,25 +1,29 @@
 /******************************************************************************
  *                                                                            *
- *          Another (g)CALendar Copyright (C) 2016 Chris Marsh                *
+ *                galandae copyright (c) 2016 Chris Marsh                     *
  *               <https://github.com/chris-marsh/gcalendar                    *
  *                                                                            *
- * This program is free software: you can redistribute it and/or modify it    *
- * under the terms of the GNU General Public License as published by the      *
- * Free Software Foundation, either version 3 of the License, or any later    *
+ * this program is free software: you can redistribute it and/or modify it    *
+ * under the terms of the gnu general public license as published by the      *
+ * free software foundation, either version 3 of the license, or any later    *
  * version.                                                                   *
  *                                                                            *
- * This program is distributed in the hope that it will be useful, but        *
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   *
+ * this program is distributed in the hope that it will be useful, but        *
+ * without any warranty; without even the implied warranty of merchantability *
+ * or fitness for a particular purpose.  see the gnu general public license   *
  * at <http://www.gnu.org/licenses/> for more details.                        *
  *                                                                            *
  ******************************************************************************/
 
-#include "gacal.h"
+
+
 #include <gtk/gtk.h>
-#include <getopt.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+#include "gui.h"
+#include "config.h"
+#include "common.h"
 
 
 struct Weekdays {
@@ -57,12 +61,14 @@ struct Month {
 
 typedef struct {
     unsigned int row;
-    unsigned int  column;
+    unsigned int column;
 } Point;
 
 
 struct Calendar {
     GtkWidget *window;
+    GtkWidget *drawing_area;
+    GtkWindowPosition position;
     unsigned int month;
     unsigned int year;
     Days_of_Week week_start;
@@ -70,6 +76,18 @@ struct Calendar {
     Point highlight_cell;
     int x_offset;
     int y_offset;
+    char *background_color;
+    char *foreground_color;
+    char *month_font_size;
+    char *month_font_weight;
+    char *day_font_size;
+    char *day_font_weight;
+    char *date_font_size;
+    char *date_font_weight;
+    char *arrow_font_size;
+    char *arrow_font_weight;
+    int close_on_unfocus;   /* 0=No , 1=Yes */
+    int center;             /* 0=No , 1=Yes */
 };
 
 
@@ -120,30 +138,6 @@ static int first_day_of_month(int month, int year)
             year + (year / 4)) % 7;
 }
 
-static GtkWidget* find_child(GtkWidget* parent, const gchar* name)
-{
-    if (g_ascii_strcasecmp(gtk_widget_get_name((GtkWidget*)parent), (gchar*)name) == 0) { 
-        return parent;
-    }
-
-    if (GTK_IS_BIN(parent)) {
-        GtkWidget *child = gtk_bin_get_child(GTK_BIN(parent));
-        return find_child(child, name);
-    }
-
-    if (GTK_IS_CONTAINER(parent)) {
-        GList *children = gtk_container_get_children(GTK_CONTAINER(parent));
-        while ((children = g_list_next(children)) != NULL) {
-            GtkWidget* widget = find_child(children->data, name);
-            if (widget != NULL) {
-                return widget;
-            }
-        }
-    }
-
-    return NULL;
-}
-
 
 static void update_calendar(CalendarPtr cal)
 {
@@ -185,10 +179,9 @@ static void update_calendar(CalendarPtr cal)
             }
         }
     }
-    GtkWidget *da = find_child(cal->window, "drawArea");
-    gtk_widget_queue_draw_area(da, 0, 0,
-            gtk_widget_get_allocated_width(GTK_WIDGET(da)),
-            gtk_widget_get_allocated_height(GTK_WIDGET(da)));
+    gtk_widget_queue_draw_area(cal->drawing_area, 0, 0,
+            gtk_widget_get_allocated_width(GTK_WIDGET(cal->drawing_area)),
+            gtk_widget_get_allocated_height(GTK_WIDGET(cal->drawing_area)));
 }
 
 
@@ -292,20 +285,22 @@ GtkWidget* init_widgets(CalendarPtr cal)
     GtkWidget *label;
     GtkWidget *eventbox;
     GtkWidget *icon;
-    GtkWidget *drawing_area;
-    GtkCssProvider *provider;
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
+    gtk_window_set_title(GTK_WINDOW(window), "Calendar");
     gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
     gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+    gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
     gtk_window_set_skip_taskbar_hint(GTK_WINDOW(window), TRUE);
     gtk_window_stick(GTK_WINDOW(window));
+
+    /* gtk_container_set_border_width (GTK_CONTAINER (window), 0); */
     gtk_widget_set_name(GTK_WIDGET(window), "mainWindow");
-    gtk_window_set_title(GTK_WINDOW(window), "Calendar");
-    g_signal_connect(GTK_WINDOW(window), "key_release_event", G_CALLBACK(on_key_press), cal);
+    g_signal_connect(GTK_WINDOW(window), "key_press_event", G_CALLBACK(on_key_press), cal);
     g_signal_connect(GTK_WINDOW(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
-    g_signal_connect(GTK_WINDOW(window), "focus_out_event", G_CALLBACK(gtk_widget_destroy), NULL);
+    if (cal->close_on_unfocus == 1)
+        g_signal_connect(GTK_WINDOW(window),
+                "focus_out_event", G_CALLBACK(gtk_widget_destroy), NULL);
     gtk_container_set_border_width(GTK_CONTAINER(window), 10);
 
     grid = gtk_grid_new();
@@ -318,8 +313,14 @@ GtkWidget* init_widgets(CalendarPtr cal)
     g_signal_connect(GTK_WIDGET(eventbox), "leave-notify-event", G_CALLBACK(on_arrow_hover), cal);
     g_signal_connect(GTK_WIDGET(eventbox), "button-release-event", G_CALLBACK(on_arrow_click), cal);
     gtk_grid_attach(GTK_GRID(grid), eventbox, 0,0,1,1);
-    icon = gtk_image_new_from_file("images/left.png");
-    gtk_grid_attach(GTK_GRID(grid), icon, 0,0,1,1);
+    if( access( "images/left.png", F_OK ) != -1 ) {
+        icon = gtk_image_new_from_file("images/left.png");
+        gtk_grid_attach(GTK_GRID(grid), icon, 0,0,1,1);
+    } else {
+        label = gtk_label_new("<");
+        gtk_widget_set_name(GTK_WIDGET(label), "leftArrow");
+        gtk_grid_attach(GTK_GRID(grid), label, 0,0,1,1);
+    }
 
     label = gtk_label_new("Month Year");
     gtk_widget_set_name(GTK_WIDGET(label), "monthLabel");
@@ -331,8 +332,14 @@ GtkWidget* init_widgets(CalendarPtr cal)
     g_signal_connect(GTK_WIDGET(eventbox), "leave-notify-event", G_CALLBACK(on_arrow_hover), cal);
     g_signal_connect(GTK_WIDGET(eventbox), "button-release-event", G_CALLBACK(on_arrow_click), cal);
     gtk_grid_attach(GTK_GRID(grid), eventbox, 6,0,1,1);
-    icon = gtk_image_new_from_file("images/right.png");
-    gtk_grid_attach(GTK_GRID(grid), icon, 6,0,1,1);
+    if( access( "images/right.png", F_OK ) != -1 ) {
+        icon = gtk_image_new_from_file("images/right.png");
+        gtk_grid_attach(GTK_GRID(grid), icon, 6,0,1,1);
+    } else {
+        label = gtk_label_new(">");
+        gtk_widget_set_name(GTK_WIDGET(label), "rightArrow");
+        gtk_grid_attach(GTK_GRID(grid), label, 6,0,1,1);
+    }
 
     for (int day =0; day<7; day++) {
         label = gtk_label_new(weekdays[(day+cal->week_start) % 7].shortname);
@@ -342,10 +349,10 @@ GtkWidget* init_widgets(CalendarPtr cal)
         gtk_grid_attach(GTK_GRID(grid), label, day,1,1,1);
     }
 
-    drawing_area = gtk_drawing_area_new ();
-    gtk_widget_set_name(GTK_WIDGET(drawing_area), "drawArea");
-    g_signal_connect (G_OBJECT (drawing_area), "draw", G_CALLBACK (draw_callback), cal);
-    gtk_grid_attach(GTK_GRID(grid), drawing_area, 0, 2, 7, 5);
+    cal->drawing_area = gtk_drawing_area_new ();
+    gtk_widget_set_name(GTK_WIDGET(cal->drawing_area), "drawArea");
+    g_signal_connect (G_OBJECT (cal->drawing_area), "draw", G_CALLBACK (draw_callback), cal);
+    gtk_grid_attach(GTK_GRID(grid), cal->drawing_area, 0, 2, 7, 5);
 
     for (int row = 2; row<8; row++) {
         for (int column=0; column<7; column++) {
@@ -358,40 +365,141 @@ GtkWidget* init_widgets(CalendarPtr cal)
         }
     }
 
-    provider = gtk_css_provider_new();
-    gtk_css_provider_load_from_path(GTK_CSS_PROVIDER(provider), "style.css", NULL);
-    gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
-            GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
-
     return window;
 }
 
 
-static void show_window(CalendarPtr cal)
+void set_style(CalendarPtr cal)
 {
-    gint xpos, ypos;
+    char style_data[2048] = {0}; // TODO calculate actual space needed
+    sprintf(style_data,
+            "#mainWindow {background-color:%s; color:%s; font-size:%s; font-weight:%s;}"
+            "#monthLabel {font-size:%s; font-weight:%s;}"
+            "#weekdayLabel {font-size:%s; font-weight:%s;}"
+            "#leftArrow, #rightArrow {font-size:%s; font-weight:%s;}",
+            cal->background_color, cal->foreground_color,
+            cal->date_font_size, cal->date_font_weight,
+            cal->month_font_size, cal->month_font_weight,
+            cal->day_font_size, cal->day_font_weight,
+            cal->arrow_font_size, cal->arrow_font_weight);
 
-    gtk_window_set_position(GTK_WINDOW(cal->window), GTK_WIN_POS_CENTER);
-    gtk_window_get_position(GTK_WINDOW(cal->window), &xpos, &ypos);
-    gtk_window_move(GTK_WINDOW(cal->window), cal->x_offset + xpos,  cal->y_offset + ypos);
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(provider),
+            style_data, strlen(style_data), NULL);
+    gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
+            GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    g_object_unref(provider);
+}
+
+
+static void show_calendar(CalendarPtr cal)
+{
+    gint x_pos = 0, y_pos = 0;
+    
+    gtk_window_set_position(GTK_WINDOW(cal->window), cal->position);
+    gtk_window_get_position(GTK_WINDOW(cal->window), &x_pos, &y_pos);
+    gtk_window_move(GTK_WINDOW(cal->window), cal->x_offset + x_pos,  cal->y_offset + y_pos);
+
     gtk_widget_show_all(cal->window);
 }
 
 
-CalendarPtr create_calendar(Options options)
+void set_default_config(CalendarPtr cal)
+{
+        cal->highlight_date = today();
+        cal->month = cal->highlight_date.month;
+        cal->year = cal->highlight_date.year;
+        cal->week_start = MONDAY;
+
+        cal->close_on_unfocus = 0;
+        cal->position = GTK_WIN_POS_NONE;
+        cal->x_offset = 0;
+        cal->y_offset = 0;
+
+        cal->background_color = strdup("#afafaf");
+        cal->foreground_color = strdup("#000000");
+
+        cal->month_font_size = strdup("1.0em");
+        cal->month_font_weight = strdup("normal");
+
+        cal->day_font_size = strdup("1.0em");
+        cal->day_font_weight = strdup("normal");
+
+        cal->date_font_size = strdup("1.0em");
+        cal->date_font_weight = strdup("normal");
+
+        cal->arrow_font_size = strdup("1.0em");
+        cal->arrow_font_weight = strdup("normal");
+}
+
+
+CalendarPtr create_calendar(char *config_filename)
 {
     CalendarPtr cal = malloc(sizeof *cal);
 
     if (cal) {
-        cal->month = options.month;
-        cal->year = options.year;
-        cal->highlight_date = options.highlight;
-        cal->x_offset = options.x_offset;
-        cal->y_offset = options.y_offset;
-        cal->week_start = options.week_start;
+        set_default_config(cal);
+        
+        Config *config = read_config_file(config_filename);
+        if (config) {
+            Option option;
+            while (config != NULL) {
+                option = pop_option(&config);
+                
+                if (strcmp(option.key, "close_on_unfocus") == 0)
+                    cal->close_on_unfocus = atoi(option.value);
+
+                if (strcmp(option.key, "position") == 0) {
+                    if (strcmp(option.value, "center") == 0) {
+                        cal->position = GTK_WIN_POS_CENTER;
+                    } else if (strcmp(option.value, "mouse") == 0) {
+                        cal->position = GTK_WIN_POS_MOUSE;
+                    } else {
+                        cal->position = GTK_WIN_POS_NONE;
+                    }
+                }
+
+                if (strcmp(option.key, "x_offset") == 0)
+                    cal->x_offset = atoi(option.value);
+                if (strcmp(option.key, "y_offset") == 0)
+                    cal->y_offset = atoi(option.value);
+
+                if (strcmp(option.key, "background_color") == 0)
+                    strfcpy(option.value, &cal->background_color);
+                if (strcmp(option.key, "foreground_color") == 0)
+                    strfcpy(option.value, &cal->foreground_color);
+                
+                if (strcmp(option.key, "month_font_size") == 0){
+                    strfcpy(option.value, &cal->month_font_size);
+                }
+                if (strcmp(option.key, "month_font_weight") == 0)
+                    strfcpy(option.value, &cal->month_font_weight);
+
+                if (strcmp(option.key, "day_font_size") == 0)
+                    strfcpy(option.value, &cal->day_font_size);
+                if (strcmp(option.key, "day_font_weight") == 0)
+                    strfcpy(option.value, &cal->day_font_weight);
+
+                if (strcmp(option.key, "date_font_size") == 0)
+                    strfcpy(option.value, &cal->date_font_size);
+                if (strcmp(option.key, "day_font_weight") == 0)
+                    strfcpy(option.value, &cal->date_font_weight);
+
+                if (strcmp(option.key, "arrow_font_size") == 0)
+                    strfcpy(option.value, &cal->arrow_font_size);
+                if (strcmp(option.key, "arrow_font_weight") == 0)
+                    strfcpy(option.value, &cal->arrow_font_weight);
+
+                free_option(option);
+            }
+            free(config);
+        } else {
+            puts("No config file loaded. Using default settings");
+        }
         cal->window = init_widgets(cal);
         update_calendar(cal);
-        show_window(cal);
+        set_style(cal);
+        show_calendar(cal);
     }
 
     return cal;
@@ -399,8 +507,22 @@ CalendarPtr create_calendar(Options options)
 
 void destroy_calendar(CalendarPtr cal)
 {
-    if (gtk_main_level() !=0 && cal->window != NULL)
-        gtk_widget_destroy(cal->window);
+    free(cal->month_font_size);
+    free(cal->month_font_weight);
+    free(cal->day_font_size);
+    free(cal->day_font_weight);
+    free(cal->date_font_size);
+    free(cal->date_font_weight);
+    free(cal->arrow_font_size);
+    free(cal->arrow_font_weight);
+    free(cal->background_color);
+    free(cal->foreground_color);
+    if (gtk_main_level() !=0 && cal->window != NULL) {
+        g_object_unref(cal->drawing_area);
+        g_object_unref(cal->window);
+        /* gtk_widget_destroy(cal->drawing_area); */
+        /* gtk_widget_destroy(cal->window); */
+    }
     free(cal);
 }
 

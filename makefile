@@ -1,15 +1,27 @@
-CC=gcc
-CFLAGS=-std=c99 -Wall -Wextra -pedantic -O3
-# CFLAGS=-std=c99 -Wall -Wextra -pedantic -g
-GTKFLAGS=`pkg-config --cflags --libs gtk+-3.0`
-GTKLIBS=`pkg-config --cflags --libs gtk+-3.0`
+CC = gcc
 
-SOURCE = main.c gacal.c
-EXEC = gacal
+CFLAGS = -std=c99 -Wall -Wextra -g
+GTK_CFLAGS = `pkg-config --cflags gtk+-3.0`
+GTK_LIB = `pkg-config --libs gtk+-3.0`
 
-$(EXEC): $(SOURCE)
-	$(CC) $(SOURCE) -o $(EXEC) $(EXECUTABLE) $(CFLAGS) $(GTKFLAGS) -I ./
+SRC_DIR = src
+BLD_DIR = build
+INC_DIR = include
+
+SRC = $(shell find $(SRC_DIR) -type f -name *.c)
+OBJ = $(patsubst $(SRC_DIR)/%,$(BLD_DIR)/%,$(SRC:.c=.o))
+EXEC = galandae
+
+$(EXEC): $(OBJ)
+	@echo "Linking..."
+	$(CC) $^ -o $(EXEC) $(GTK_LIB)
+
+$(BLD_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(BLD_DIR)
+	$(CC) $(CFLAGS) $(GTK_CFLAGS) -I $(INC_DIR) -c -o $@ $<
+
+clean:
+	@echo "Cleaning..."; 
+	$(RM) -r $(BLD_DIR) $(EXEC)
 
 .PHONY: clean
-clean:
-	rm -f gacal

@@ -1,22 +1,24 @@
 /******************************************************************************
  *                                                                            *
- *          Another (g)CALendar Copyright (C) 2016 Chris Marsh                *
+ *                galandae copyright (c) 2016 Chris Marsh                     *
  *               <https://github.com/chris-marsh/gcalendar                    *
  *                                                                            *
- * This program is free software: you can redistribute it and/or modify it    *
- * under the terms of the GNU General Public License as published by the      *
- * Free Software Foundation, either version 3 of the License, or any later    *
+ * this program is free software: you can redistribute it and/or modify it    *
+ * under the terms of the gnu general public license as published by the      *
+ * free software foundation, either version 3 of the license, or any later    *
  * version.                                                                   *
  *                                                                            *
- * This program is distributed in the hope that it will be useful, but        *
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   *
+ * this program is distributed in the hope that it will be useful, but        *
+ * without any warranty; without even the implied warranty of merchantability *
+ * or fitness for a particular purpose.  see the gnu general public license   *
  * at <http://www.gnu.org/licenses/> for more details.                        *
  *                                                                            *
  ******************************************************************************/
 
-#ifndef HEADERFILE_GACAL
-#define HEADERFILE_GACAL
+
+
+#ifndef GACAL_H
+#define GACAL_H
 
 #include <limits.h>
 #include <gtk/gtk.h>
@@ -27,7 +29,6 @@
 #  define UNUSED(x) UNUSED_ ## x
 #endif
 
-#define VERSION "0.1"
 #define MAX_YEAR (INT_MAX / 12 - 1)  /* Limited by the inc_month function */
 
 typedef enum{
@@ -57,7 +58,7 @@ typedef struct {
 
 typedef struct Calendar* CalendarPtr;
 
-CalendarPtr create_calendar(Options options);
+CalendarPtr create_calendar(char *config_filename);
 void destroy_calendar(CalendarPtr calendar);
 Date today(void);
 
