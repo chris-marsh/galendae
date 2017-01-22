@@ -49,7 +49,7 @@ int push_option(Config **head, const char *key, const char *value)
  */
 Option pop_option(Config **head)
 {
-    Option option = {};
+    Option option = {0, 0};
     if (*head) {
         Config *prevConfig;
         prevConfig = *head;
