@@ -12,13 +12,14 @@ A basic popup calendar that can be styled to match workspace themes.
     galandae [OPTION ...]
 
     DESCRIPTION
-        Another (g)CALendar displays a gui calendar. If no arguments
-        are specified, the current month is shown. Keys:
-            h|Left    - decrease month"
+
+        Galandae displays a gui calendar. Keys:
+
+            h|Left    - decrease month
             l|Right   - increase month
-            k|Up      - increase year"
-            j|Down    - decrease year\n
-            g|Home    - return to current date\
+            k|Up      - increase year
+            j|Down    - decrease year
+            g|Home    - return to current date
             q|Esc     - exit the calendar
 
     OPTIONS

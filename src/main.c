@@ -33,8 +33,7 @@ static void usage(int exit_code)
     puts("\nUSAGE");
     puts("    galandae [OPTION ...] \n");
     puts("DESCRIPTION");
-    puts("    Another (g)CALendar displays a gui calendar. If no arguments");
-    puts("    are specified, the current month is shown. Keys:");
+    puts("    Galandae displays a gui calendar. Keys:");
     puts("        h|Left    - decrease month");
     puts("        l|Right   - increase month");
     puts("        k|Up      - increase year");
