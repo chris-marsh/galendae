@@ -6,7 +6,7 @@ A basic popup calendar that can be styled to match workspace themes.
 
 [![sample screenshot](http://i.imgur.com/G4HiuPzb.png)](http://i.imgur.com/G4HiuPz.png)
 [![sample screenshot](http://i.imgur.com/84ScLynb.png)](http://i.imgur.com/84ScLyn.png)
-[![sample screenshot](http://i.imgur.com/5fM1v8d.png)](http://i.imgur.com/5fM1v8db.png)
+[![sample screenshot](http://i.imgur.com/5fM1v8db.png)](http://i.imgur.com/5fM1v8d.png)
 
 ## Useage
 
