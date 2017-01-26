@@ -17,9 +17,11 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <pwd.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #include "common.h"
 
 
@@ -68,7 +70,7 @@ int trim_spaces(char *source_str)
     memmove(source_str, dest_str, length + 1);
 
     return length;
-}  
+}
 
 
 /*

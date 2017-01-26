@@ -17,8 +17,8 @@
 
 
 
-#ifndef GACAL_H
-#define GACAL_H
+#ifndef GUI_H
+#define GUI_H
 
 #include <limits.h>
 #include <gtk/gtk.h>

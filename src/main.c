@@ -16,13 +16,14 @@
  ******************************************************************************/
 
 
-
 #include <gtk/gtk.h>
 #include <getopt.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "gui.h"
 #include "common.h"
+#include "instance.h"
 
 
 /*
@@ -51,7 +52,7 @@ static void usage(int exit_code)
 
 /*
  * Output version information to the console and exit.
-*/
+ */
 static void version(void)
 {
     printf(APP_NAME " version %s (compiled %s)\n", VERSION, __DATE__);
@@ -63,7 +64,7 @@ static void version(void)
  * Process the commandline arguments passed to our app. This basic app
  * runs a GUI and only expects very 'basic' arguments, help, version and config.
  * more detailed options are provided by a config file.
-*/
+ */
 static char *process_arguments(int argc, char *argv[])
 {
     int optc = 0;
@@ -91,28 +92,34 @@ static char *process_arguments(int argc, char *argv[])
         }
     }
 
-    if (optind < argc) {
-        if (argc-optind > 0) {
-            /* Get the other arguments from argv[optind]*/
-        } else
-            usage(-1);
-    }
-
     return config_filename;
 }
 
 
 /*
  * Create a main window and start the gtk event loop.
-*/
+ */
 int main(int argc, char *argv[])
 {
-    gtk_init(&argc, &argv);
-    char *config_filename = process_arguments(argc, argv);
-    CalendarPtr window = create_calendar(config_filename);
-    gtk_main();
-    destroy_calendar(window);
-    if (config_filename)
-        free(config_filename);
+    Instance instance;
+
+    instance_lock(&instance);
+
+    if (instance.unique != TRUE) {
+        // Another instance is running
+        instance_kill(&instance);
+    } else {
+        // Continue with a unique instance of the program
+        gtk_init(&argc, &argv);
+        char *config_filename = process_arguments(argc, argv);
+        CalendarPtr window = create_calendar(config_filename);
+        gtk_main();
+
+        destroy_calendar(window);
+        if (config_filename)
+            free(config_filename);
+    }
+
+    instance_free(&instance);
     return 0;
 }

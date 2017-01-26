@@ -348,10 +348,10 @@ GtkWidget* init_widgets(CalendarPtr cal)
     for (int row = 2; row<8; row++) {
         for (int column=0; column<7; column++) {
             label = gtk_label_new(NULL);
-            gtk_widget_set_margin_bottom(GTK_WIDGET(label),6);
-            gtk_widget_set_margin_top(GTK_WIDGET(label),6);
-            gtk_widget_set_margin_start(GTK_WIDGET(label),12);
-            gtk_widget_set_margin_end(GTK_WIDGET(label),12);
+            gtk_widget_set_margin_bottom(GTK_WIDGET(label),5);
+            gtk_widget_set_margin_top(GTK_WIDGET(label),5);
+            gtk_widget_set_margin_start(GTK_WIDGET(label),11);
+            gtk_widget_set_margin_end(GTK_WIDGET(label),11);
             gtk_grid_attach(GTK_GRID(grid), label, column, row, 1, 1);
         }
     }
