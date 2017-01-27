@@ -20,7 +20,6 @@
 #define GUI_H
 
 #include <limits.h>
-#include <gtk/gtk.h>
 
 #ifdef __GNUC__
 #  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
@@ -55,7 +54,7 @@ typedef struct {
     Days_of_Week week_start;
 } Options;
 
-typedef struct Calendar* CalendarPtr;
+typedef struct Calendar *CalendarPtr;
 
 CalendarPtr create_calendar(char *config_filename);
 void destroy_calendar(CalendarPtr calendar);

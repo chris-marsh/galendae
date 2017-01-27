@@ -97,19 +97,29 @@ static char *process_arguments(int argc, char *argv[])
 
 
 /*
+ * Signal handler to end the existing instance cleanly
+ */
+static void signal_handler(int signal_id)
+{
+    if (signal_id == SIGTERM)
+        gtk_main_quit();
+}
+
+
+/*
  * Create a main window and start the gtk event loop.
  */
 int main(int argc, char *argv[])
 {
-    Instance instance;
+    InstancePtr instance = instance_create();
 
-    instance_lock(&instance);
-
-    if (instance.unique != TRUE) {
+    if (instance_is_unique(instance) != TRUE) {
         // Another instance is running
-        instance_kill(&instance);
+        /* instance_kill(&instance); */
+        instance_kill(instance);
     } else {
         // Continue with a unique instance of the program
+        signal(SIGTERM, &signal_handler);
         gtk_init(&argc, &argv);
         char *config_filename = process_arguments(argc, argv);
         CalendarPtr window = create_calendar(config_filename);
@@ -120,6 +130,6 @@ int main(int argc, char *argv[])
             free(config_filename);
     }
 
-    instance_free(&instance);
+    instance_free(instance);
     return 0;
 }

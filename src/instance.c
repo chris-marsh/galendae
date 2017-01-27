@@ -27,6 +27,13 @@
 #include "common.h"
 
 
+struct Instance {
+    int unique;
+    char pid[10];
+    int pid_file;
+};
+
+
 /*
  * C99 Alternative for POSIX 'kill'
 */
@@ -43,9 +50,14 @@ static int send_sig(int pid, int sig)
 
 
 /*
- * 
+ * Try to create a unqiue instance of the program. 
+ * Create a temporary file and attempt a lock on it. If succesful, write
+ * the pid into the file. If the lock fails, another instance is already
+ * running, so read its pid from the existing lock file.
  */
-int instance_lock(Instance *this) {
+InstancePtr instance_create() {
+    InstancePtr this = malloc(sizeof *this);
+
     this->unique = FALSE;
     this->pid_file = open(PID_FILENAME, O_CREAT | O_RDWR, 0666);
 
@@ -67,44 +79,45 @@ int instance_lock(Instance *this) {
             }
         }
     }
-    return this->unique;
+    return this;
 }
 
 
 /*
- *
+ * Enuf said
  */
-int instance_is_unique(Instance *this)
+int instance_is_unique(InstancePtr this)
 {
     return this->unique;
 }
 
 
 /*
- *
+ * Send a signal to the instance with the lock.
  */
-void instance_signal(Instance *this, int signal_code)
+void instance_signal(InstancePtr this, int signal_code)
 {
     send_sig(atoi(this->pid), signal_code);
 }
 
 
 /*
- *
+ * Shorthand fuunction to send the SIGTERM signal
  */
-void instance_kill(Instance *this)
+void instance_kill(InstancePtr this)
 {
     instance_signal(this, SIGTERM);
 }
 
 
 /*
- *
+ * Cleanup the temp file and used memory
  */
-void instance_free(Instance *this)
+void instance_free(InstancePtr this)
 {
     if (this->pid_file)
         close(this->pid_file);
     unlink(PID_FILENAME);
+    free(this);
 }
 

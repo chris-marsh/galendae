@@ -21,7 +21,6 @@
 #include <string.h>
 #include <pwd.h>
 #include <unistd.h>
-#include <sys/wait.h>
 #include "common.h"
 
 
