@@ -1,19 +1,8 @@
-/******************************************************************************
- *                                                                            *
- *                galandae copyright (c) 2016 Chris Marsh                     *
- *               <https://github.com/chris-marsh/gcalendar                    *
- *                                                                            *
- * this program is free software: you can redistribute it and/or modify it    *
- * under the terms of the gnu general public license as published by the      *
- * free software foundation, either version 3 of the license, or any later    *
- * version.                                                                   *
- *                                                                            *
- * this program is distributed in the hope that it will be useful, but        *
- * without any warranty; without even the implied warranty of merchantability *
- * or fitness for a particular purpose.  see the gnu general public license   *
- * at <http://www.gnu.org/licenses/> for more details.                        *
- *                                                                            *
- ******************************************************************************/
+/*
+ * Project: Galendae Popup Calendar
+ * URL:     https://github.com/chris-marsh/galendae
+ * License: The MIT License
+ */
 
 
 #include <stdlib.h>
@@ -34,7 +23,10 @@ char *strdup(const char *source_str)
     return dest_str;                                    // Return new memory
 }
 
-
+/*
+ * Convenience function to free any existing allocated memory before
+ * calling strdup.
+ */
 int strfcpy(const char *source_str, char **dest_str) {
     if (*dest_str) {
         free(*dest_str);
