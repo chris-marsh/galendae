@@ -56,8 +56,6 @@ InstancePtr instance_create() {
             if (EWOULDBLOCK == errno) {
                 /* Already running, get the PID */
                 read(this->pid_file, this->pid, 10);
-            } else {
-                /* Deal with an error */
             }
         } else {
             /* Get lock */
