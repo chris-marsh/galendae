@@ -1,7 +1,7 @@
-# Galandae config file
+# Galendae config file
 
 # Window settings
-close_on_unfocus=0
+close_on_unfocus=1
 position=none
 x_offset=0
 y_offset=0
