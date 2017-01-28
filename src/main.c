@@ -50,9 +50,7 @@ static void version(void)
 
 
 /*
- * Process the commandline arguments passed to our app. This basic app
- * runs a GUI and only expects very 'basic' arguments, help, version and config.
- * more detailed options are provided by a config file.
+ * Process the commandline arguments.
  */
 static char *process_arguments(int argc, char *argv[])
 {
