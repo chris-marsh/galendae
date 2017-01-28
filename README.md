@@ -4,9 +4,11 @@ A basic popup calendar that can be styled to match workspace themes.
 
 **Galendae** was designed to be a stylish popup calendar that can match the styling of Desktop Environments or Window Managers.
 
-[![sample screenshot](http://i.imgur.com/G4HiuPzb.png)](http://i.imgur.com/G4HiuPz.png)
-[![sample screenshot](http://i.imgur.com/84ScLynb.png)](http://i.imgur.com/84ScLyn.png)
+[![sample screenshot](http://i.imgur.com/jIHb70zb.png)](http://i.imgur.com/jIHb70z.png)
 [![sample screenshot](http://i.imgur.com/5fM1v8db.png)](http://i.imgur.com/5fM1v8d.png)
+[![sample screenshot](http://i.imgur.com/0tNQDN6b.png)](http://i.imgur.com/0tNQDN6.png)
+
+
 
 ## Useage
 
