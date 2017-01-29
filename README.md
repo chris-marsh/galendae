@@ -20,7 +20,7 @@ Galendae is derived from the Roman word [Kalendae](https://en.wikipedia.org/wiki
 ## Building from source
 
     $ git clone https://github.com/chris-marsh/galendae.git
-    $ make
+    $ make release
 
 ## Configuration
 

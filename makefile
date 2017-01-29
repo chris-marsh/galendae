@@ -8,6 +8,8 @@ SRC_DIR = src
 BLD_DIR = build
 INC_DIR = include
 
+GIT_VERSION = $(shell git describe --always --tags)
+CFLAGS += -DVERSION=\"$(GIT_VERSION)\"
 SRC = $(shell find $(SRC_DIR) -type f -name *.c)
 OBJ = $(patsubst $(SRC_DIR)/%,$(BLD_DIR)/%,$(SRC:.c=.o))
 EXEC = galendae

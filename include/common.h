@@ -9,7 +9,10 @@
 #define COMMON_H
 
 #define APP_NAME "galendae"
-#define VERSION "1.0"
+
+#ifndef VERSION
+#define VERSION "unknown"
+#endif
 
 #ifndef TRUE
 #define TRUE 1
