@@ -5,8 +5,10 @@ close_on_unfocus=1
 position=none
 x_offset=0
 y_offset=0
+
 background_color=#e8e8e7
 foreground_color=#000000
+fringe_date_color=#a5a5a5
 
 # Month font
 month_font_size=xx-large

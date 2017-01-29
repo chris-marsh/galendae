@@ -66,6 +66,7 @@ struct Calendar {
     int y_offset;
     char *background_color;
     char *foreground_color;
+    char *fringe_date_color;
     char *month_font_size;
     char *month_font_weight;
     char *day_font_size;
@@ -139,6 +140,17 @@ static int first_day_of_month(int month, int year)
 
 
 /*
+ * Given the int year, returns TRUE if a leap year
+ */
+static int is_leap_year(const int year)
+{
+    if ((!(year % 4) && (year % 100)) || !(year % 400))
+        return TRUE;
+    else
+        return FALSE;
+}
+
+/*
  * Update the calendar display
  */
 static void update_calendar(CalendarPtr this)
@@ -146,39 +158,55 @@ static void update_calendar(CalendarPtr this)
     GtkWidget *grid;
     GtkWidget *label;
     char temp[20];
-    unsigned int day;
 
     grid = gtk_bin_get_child(GTK_BIN(this->window));
-    label = gtk_grid_get_child_at(GTK_GRID(grid), 1,0);
+    if (grid == NULL)
+        return;
 
+    label = gtk_grid_get_child_at(GTK_GRID(grid), 1,0);
     sprintf(temp, "%s %d", months[this->month-1].longName, this->year);
     gtk_label_set_text(GTK_LABEL(label), temp);
 
-    if ((this->month == 2) &&
-            ((!(this->year % 4) && (this->year % 100)) || !(this->year % 400))) {
-        months[this->month-1].num_days = 29;
+    if (this->month == 2) {
+        if (is_leap_year(this->year))
+            months[this->month-1].num_days = 29;
+        else
+            months[this->month-1].num_days = 28;
     }
 
-    if (grid != NULL) {
-        day = 1 - (first_day_of_month(this->month, this->year) -
-                this->week_start + 7) % 7;
-        for (int line = 2; line <=7; line++) {
-            for (int col=0; col<7; col++) {
-                if (day>0 && day<=months[this->month-1].num_days) 
-                    sprintf(temp, "%d", day);
-                else
-                    sprintf(temp, "%c", '\0');
+    unsigned int prev_month = this->month;
+    unsigned int prev_year = this->year;
+    inc_month(-1, &prev_month, &prev_year);
 
-                label = gtk_grid_get_child_at(GTK_GRID(grid), col, line);
-                gtk_label_set_text(GTK_LABEL(label), temp);
-                if (day == this->highlight_date.day &&
-                        this->month == this->highlight_date.month &&
-                        this->year == this->highlight_date.year) {
-                    this->highlight_cell.column = col+1;
-                    this->highlight_cell.row = line-1;
-                }
-                day++;
+    if ((prev_month == 2) && is_leap_year(prev_year))
+        months[prev_month-1].num_days = 29;
+
+    int day = 1 - (first_day_of_month(this->month, this->year) -
+            this->week_start + 7) % 7;
+
+    for (int line = 2; line <=7; line++) {
+        for (int col = 0; col < 7; col++) {
+            label = gtk_grid_get_child_at(GTK_GRID(grid), col, line);
+
+            if (day > 0 && (int)day <= (int)months[this->month-1].num_days) {
+                gtk_widget_set_name(GTK_WIDGET(label), "date");
+                sprintf(temp, "%d", day);
+            } else {
+                gtk_widget_set_name(GTK_WIDGET(label), "fringeDate");
+                if (day < 1)
+                    sprintf(temp, "%d", months[prev_month-1].num_days+day);
+                else
+                    sprintf(temp, "%d", day - months[this->month-1].num_days);
             }
+
+            gtk_label_set_text(GTK_LABEL(label), temp);
+            if (day == (int)this->highlight_date.day &&
+                    this->month == this->highlight_date.month &&
+                    this->year == this->highlight_date.year) {
+                this->highlight_cell.column = col+1;
+                this->highlight_cell.row = line-1;
+            }
+            day++;
         }
     }
     gtk_widget_queue_draw_area(this->drawing_area, 0, 0,
@@ -386,12 +414,14 @@ void set_style(CalendarPtr this)
             "#mainWindow {background-color:%s; color:%s; font-size:%s; font-weight:%s;}"
             "#monthLabel {font-size:%s; font-weight:%s;}"
             "#weekdayLabel {font-size:%s; font-weight:%s;}"
-            "#leftArrow, #rightArrow {font-size:%s; font-weight:%s;}",
+            "#leftArrow, #rightArrow {font-size:%s; font-weight:%s;}"
+            "#fringeDate {color:%s;}",
             this->background_color, this->foreground_color,
             this->date_font_size, this->date_font_weight,
             this->month_font_size, this->month_font_weight,
             this->day_font_size, this->day_font_weight,
-            this->arrow_font_size, this->arrow_font_weight);
+            this->arrow_font_size, this->arrow_font_weight,
+            this->fringe_date_color);
 
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(provider),
@@ -434,6 +464,8 @@ void set_default_config(CalendarPtr this)
 
     this->background_color = strdup("#afafaf");
     this->foreground_color = strdup("#000000");
+
+    this->fringe_date_color = strdup("#a5a5a5");
 
     this->month_font_size = strdup("1.0em");
     this->month_font_weight = strdup("normal");
@@ -488,9 +520,11 @@ CalendarPtr create_calendar(char *config_filename)
                 if (strcmp(option.key, "foreground_color") == 0)
                     strfcpy(option.value, &this->foreground_color);
 
-                if (strcmp(option.key, "month_font_size") == 0){
+                if (strcmp(option.key, "fringe_date_color") == 0)
+                    strfcpy(option.value, &this->fringe_date_color);
+
+                if (strcmp(option.key, "month_font_size") == 0)
                     strfcpy(option.value, &this->month_font_size);
-                }
                 if (strcmp(option.key, "month_font_weight") == 0)
                     strfcpy(option.value, &this->month_font_weight);
 
