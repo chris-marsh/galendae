@@ -12,6 +12,8 @@
 #include <errno.h>
 #include <sys/file.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "instance.h"
 #include "common.h"
 
@@ -20,12 +22,13 @@ struct Instance {
     int unique;
     char pid[10];
     int pid_file;
+    char *pid_filename;
 };
 
 
 /*
  * C99 Alternative for POSIX 'kill'
-*/
+ */
 static int send_sig(int pid, int sig)
 {
     char exec_str[128];
@@ -44,14 +47,23 @@ static int send_sig(int pid, int sig)
  * the pid into the file. If the lock fails, another instance is already
  * running, so read its pid from the existing lock file.
  */
-InstancePtr instance_create() {
+InstancePtr instance_create()
+{
     InstancePtr this = malloc(sizeof *this);
 
+    char *config_base_dir = user_config_dir();
+    char *config_dir = malloc(strlen(config_base_dir)+strlen(APP_NAME)+2);
+
+    sprintf(config_dir, "%s%c%s", config_base_dir, '/', APP_NAME);
+    mkdir(config_dir, 0700);
+
+    this->pid_filename = malloc(strlen(config_dir)+10);
+    sprintf(this->pid_filename, "%s%s", config_dir, "/pid.lock");
+
     this->unique = FALSE;
-    this->pid_file = open(PID_FILENAME, O_CREAT | O_RDWR, 0666);
+    this->pid_file = open(this->pid_filename, O_CREAT | O_RDWR, 0666);
 
-    if (this->pid_file != -1){
-
+    if (this->pid_file != -1) {
         if (flock(this->pid_file, LOCK_EX | LOCK_NB)) {
             if (EWOULDBLOCK == errno) {
                 /* Already running, get the PID */
@@ -66,6 +78,8 @@ InstancePtr instance_create() {
             }
         }
     }
+    free(config_dir);
+    free(config_base_dir);
     return this;
 }
 
@@ -75,7 +89,7 @@ InstancePtr instance_create() {
  */
 int instance_is_unique(InstancePtr this)
 {
-    return this->unique;
+    return (this->unique);
 }
 
 
@@ -104,7 +118,7 @@ void instance_free(InstancePtr this)
 {
     if (this->pid_file)
         close(this->pid_file);
-    unlink(PID_FILENAME);
+    unlink(this->pid_filename);
     free(this);
 }
 

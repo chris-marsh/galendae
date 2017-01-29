@@ -8,10 +8,7 @@
 #ifndef INSTANCE_H
 #define INSTANCE_H
 
-#define PID_FILENAME "/tmp/galendae_pid.lock"
-
 typedef struct Instance *InstancePtr;
-
 
 InstancePtr instance_create();
 int instance_is_unique(InstancePtr this);
