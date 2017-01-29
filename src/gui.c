@@ -188,7 +188,7 @@ static void update_calendar(CalendarPtr this)
         for (int col = 0; col < 7; col++) {
             label = gtk_grid_get_child_at(GTK_GRID(grid), col, line);
 
-            if (day > 0 && (int)day <= (int)months[this->month-1].num_days) {
+            if (day > 0 && day <= (int)months[this->month-1].num_days) {
                 gtk_widget_set_name(GTK_WIDGET(label), "date");
                 sprintf(temp, "%d", day);
             } else {
@@ -464,8 +464,7 @@ void set_default_config(CalendarPtr this)
 
     this->background_color = strdup("#afafaf");
     this->foreground_color = strdup("#000000");
-
-    this->fringe_date_color = strdup("#a5a5a5");
+    this->fringe_date_color = strdup("#717171");
 
     this->month_font_size = strdup("1.0em");
     this->month_font_weight = strdup("normal");
