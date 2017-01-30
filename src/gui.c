@@ -299,7 +299,7 @@ static gboolean draw_callback (GtkWidget *widget, cairo_t *cr, CalendarPtr this)
     GdkRGBA color;
     GtkStyleContext *context;
     int cell_width = gtk_widget_get_allocated_width(GTK_WIDGET(widget)) / 7;
-    int cell_height = gtk_widget_get_allocated_height(GTK_WIDGET(widget)) / 5;
+    int cell_height = gtk_widget_get_allocated_height(GTK_WIDGET(widget)) / 6;
 
     context = gtk_widget_get_style_context (widget);
     gtk_style_context_get_color (context, gtk_style_context_get_state (context), &color);
@@ -309,7 +309,7 @@ static gboolean draw_callback (GtkWidget *widget, cairo_t *cr, CalendarPtr this)
             this->year == this->highlight_date.year) {
         cairo_arc (cr,
                 (this->highlight_cell.column*cell_width)-(cell_width/2),
-                (this->highlight_cell.row*cell_height)-(cell_height/2) - 1,
+                (this->highlight_cell.row*cell_height)-(cell_height/2),
                 (cell_height/2) - 1,
                 0, 2 * G_PI);
     }
@@ -387,7 +387,7 @@ GtkWidget* init_widgets(CalendarPtr this)
     this->drawing_area = gtk_drawing_area_new ();
     gtk_widget_set_name(GTK_WIDGET(this->drawing_area), "drawArea");
     g_signal_connect (G_OBJECT (this->drawing_area), "draw", G_CALLBACK (draw_callback), this);
-    gtk_grid_attach(GTK_GRID(grid), this->drawing_area, 0, 2, 7, 5);
+    gtk_grid_attach(GTK_GRID(grid), this->drawing_area, 0, 2, 7, 6);
 
     for (int row = 2; row<8; row++) {
         for (int column=0; column<7; column++) {
