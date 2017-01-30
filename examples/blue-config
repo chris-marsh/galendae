@@ -1,27 +1,45 @@
-# Galendae config file
+###
+# Galendae blue config file
+###########################
 
 # Window settings
+
+# Stick window to all workspaces: 0=No, 1=Yes
+stick=0
+# Undecorated window: 0=No, 1=Yes
+undecorated=0
+# Close the window if it loses focus: 0=No, 1=Yes
 close_on_unfocus=0
+# Initial window position: 'center', 'mouse' or 'none'
 position=none
+# Move the window horizontally from its intial position
 x_offset=1
+# Move the window vertically from its initial position
 y_offset=1
 
+### COLORS
+
+# Window background specified with CSS color
 background_color=#0a6cf5
+# Text color specified with CSS color
 foreground_color=#dfdfdf
+# Dates of previous and following months, colored with CSS
 fringe_date_color=#a5a5a5
 
-# Month font
+### FONTS
+
+# Month font with CSS size and weight
 month_font_size=x-large
 month_font_weight=normal
 
-# Weekday font
+# Weekday column header font with CSS size and weight
 day_font_size=1.0em
 day_font_weight=normal
 
-# Date number font
+# Date number font with CSS size and weight
 date_font_size=large
 date_font_weight=bold
 
-# Arrow font
+# Arrow font, ie '<' and '>' with CSS size and weight
 arrow_font_size = xx-large
 arrow_font_weight = bold

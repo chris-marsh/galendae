@@ -77,6 +77,8 @@ struct Calendar {
     char *arrow_font_weight;
     int close_on_unfocus;   /* 0=No , 1=Yes */
     int center;             /* 0=No , 1=Yes */
+    int undecorated;
+    int stick;
 };
 
 
@@ -331,13 +333,14 @@ GtkWidget* init_widgets(CalendarPtr this)
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window), "Calendar");
-    gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
+    if (this->undecorated == 1)
+        gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
+    if (this->stick)
+        gtk_window_stick(GTK_WINDOW(window));
     gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
     gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
     gtk_window_set_skip_taskbar_hint(GTK_WINDOW(window), TRUE);
-    gtk_window_stick(GTK_WINDOW(window));
 
-    /* gtk_container_set_border_width (GTK_CONTAINER (window), 0); */
     gtk_widget_set_name(GTK_WIDGET(window), "mainWindow");
     g_signal_connect(GTK_WINDOW(window), "key_press_event", G_CALLBACK(on_key_press), this);
     g_signal_connect(GTK_WINDOW(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
@@ -457,6 +460,8 @@ void set_default_config(CalendarPtr this)
     this->year = this->highlight_date.year;
     this->week_start = MONDAY;
 
+    this->undecorated = 0;
+    this->stick=0;
     this->close_on_unfocus = 0;
     this->position = GTK_WIN_POS_NONE;
     this->x_offset = 0;
@@ -496,6 +501,10 @@ CalendarPtr create_calendar(char *config_filename)
             while (config != NULL) {
                 option = pop_option(&config);
 
+                if (strcmp(option.key, "undecorated") == 0)
+                    this->undecorated = atoi(option.value);
+                if (strcmp(option.key, "stick") == 0)
+                    this->stick = atoi(option.value);
                 if (strcmp(option.key, "close_on_unfocus") == 0)
                     this->close_on_unfocus = atoi(option.value);
 
