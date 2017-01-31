@@ -131,6 +131,7 @@ static int parse_line(const char *line, char **key, char **value)
 /*
  * Read the config file and populate a config stack with 
  * option key/value pairs. Returns a pointer to the stack.
+ * Max line length read is 256 characters
  */
 Config *read_config_file(const char *filename)
 {

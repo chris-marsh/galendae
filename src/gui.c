@@ -412,26 +412,36 @@ GtkWidget* init_widgets(CalendarPtr this)
  */
 void set_style(CalendarPtr this)
 {
-    char style_data[2048] = {0}; // TODO calculate actual space needed
-    sprintf(style_data,
+    char *format = 
             "#mainWindow {background-color:%s; color:%s; font-size:%s; font-weight:%s;}"
             "#monthLabel {font-size:%s; font-weight:%s;}"
             "#weekdayLabel {font-size:%s; font-weight:%s;}"
             "#leftArrow, #rightArrow {font-size:%s; font-weight:%s;}"
-            "#fringeDate {color:%s;}",
-            this->background_color, this->foreground_color,
-            this->date_font_size, this->date_font_weight,
-            this->month_font_size, this->month_font_weight,
-            this->day_font_size, this->day_font_weight,
-            this->arrow_font_size, this->arrow_font_weight,
-            this->fringe_date_color);
-
-    GtkCssProvider *provider = gtk_css_provider_new();
-    gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(provider),
-            style_data, strlen(style_data), NULL);
-    gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
-            GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
-    g_object_unref(provider);
+            "#fringeDate {color:%s;}";
+    int size = strlen(format) - 22 +
+        strlen(this->background_color) + strlen(this->foreground_color) +
+        strlen(this->date_font_size) + strlen(this->date_font_weight) +
+        strlen(this->month_font_size) + strlen(this->month_font_weight) +
+        strlen(this->day_font_size) + strlen(this->day_font_weight) +
+        strlen(this->arrow_font_size) + strlen(this->arrow_font_weight) +
+        strlen(this->fringe_date_color);
+    char *style_data = malloc(size + 1);
+    if (style_data) {
+        sprintf(style_data, format,
+                this->background_color, this->foreground_color,
+                this->date_font_size, this->date_font_weight,
+                this->month_font_size, this->month_font_weight,
+                this->day_font_size, this->day_font_weight,
+                this->arrow_font_size, this->arrow_font_weight,
+                this->fringe_date_color);
+        GtkCssProvider *provider = gtk_css_provider_new();
+        gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(provider),
+                style_data, strlen(style_data), NULL);
+        gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
+                GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+        g_object_unref(provider);
+        free(style_data);
+    }
 }
 
 
@@ -503,54 +513,51 @@ CalendarPtr create_calendar(char *config_filename)
 
                 if (strcmp(option.key, "undecorated") == 0)
                     this->undecorated = atoi(option.value);
-                if (strcmp(option.key, "stick") == 0)
+                else if (strcmp(option.key, "stick") == 0)
                     this->stick = atoi(option.value);
-                if (strcmp(option.key, "close_on_unfocus") == 0)
+                else if (strcmp(option.key, "close_on_unfocus") == 0)
                     this->close_on_unfocus = atoi(option.value);
 
-                if (strcmp(option.key, "position") == 0) {
-                    if (strcmp(option.value, "center") == 0) {
-                        this->position = GTK_WIN_POS_CENTER;
-                    } else if (strcmp(option.value, "mouse") == 0) {
-                        this->position = GTK_WIN_POS_MOUSE;
-                    } else {
-                        this->position = GTK_WIN_POS_NONE;
-                    }
-                }
-
-                if (strcmp(option.key, "x_offset") == 0)
+                else if (strcmp(option.key, "x_offset") == 0)
                     this->x_offset = atoi(option.value);
-                if (strcmp(option.key, "y_offset") == 0)
+                else if (strcmp(option.key, "y_offset") == 0)
                     this->y_offset = atoi(option.value);
 
-                if (strcmp(option.key, "background_color") == 0)
+                else if (strcmp(option.key, "background_color") == 0)
                     strfcpy(option.value, &this->background_color);
-                if (strcmp(option.key, "foreground_color") == 0)
+                else if (strcmp(option.key, "foreground_color") == 0)
                     strfcpy(option.value, &this->foreground_color);
-
-                if (strcmp(option.key, "fringe_date_color") == 0)
+                else if (strcmp(option.key, "fringe_date_color") == 0)
                     strfcpy(option.value, &this->fringe_date_color);
 
-                if (strcmp(option.key, "month_font_size") == 0)
+                else if (strcmp(option.key, "month_font_size") == 0)
                     strfcpy(option.value, &this->month_font_size);
-                if (strcmp(option.key, "month_font_weight") == 0)
+                else if (strcmp(option.key, "month_font_weight") == 0)
                     strfcpy(option.value, &this->month_font_weight);
 
-                if (strcmp(option.key, "day_font_size") == 0)
+                else if (strcmp(option.key, "day_font_size") == 0)
                     strfcpy(option.value, &this->day_font_size);
-                if (strcmp(option.key, "day_font_weight") == 0)
+                else if (strcmp(option.key, "day_font_weight") == 0)
                     strfcpy(option.value, &this->day_font_weight);
 
-                if (strcmp(option.key, "date_font_size") == 0)
+                else if (strcmp(option.key, "date_font_size") == 0)
                     strfcpy(option.value, &this->date_font_size);
-                if (strcmp(option.key, "day_font_weight") == 0)
+                else if (strcmp(option.key, "day_font_weight") == 0)
                     strfcpy(option.value, &this->date_font_weight);
 
-                if (strcmp(option.key, "arrow_font_size") == 0)
+                else if (strcmp(option.key, "arrow_font_size") == 0)
                     strfcpy(option.value, &this->arrow_font_size);
-                if (strcmp(option.key, "arrow_font_weight") == 0)
+                else if (strcmp(option.key, "arrow_font_weight") == 0)
                     strfcpy(option.value, &this->arrow_font_weight);
 
+                else if (strcmp(option.key, "position") == 0) {
+                    if (strcmp(option.value, "center") == 0)
+                        this->position = GTK_WIN_POS_CENTER;
+                    else if (strcmp(option.value, "mouse") == 0)
+                        this->position = GTK_WIN_POS_MOUSE;
+                    else
+                        this->position = GTK_WIN_POS_NONE;
+                }
                 free_option(option);
             }
             free(config);
@@ -582,11 +589,10 @@ void destroy_calendar(CalendarPtr this)
     free(this->arrow_font_weight);
     free(this->background_color);
     free(this->foreground_color);
+    free(this->fringe_date_color);
     if (gtk_main_level() !=0 && this->window != NULL) {
         g_object_unref(this->drawing_area);
         g_object_unref(this->window);
-        /* gtk_widget_destroy(cal->drawing_area); */
-        /* gtk_widget_destroy(cal->window); */
     }
     free(this);
 }
