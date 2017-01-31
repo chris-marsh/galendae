@@ -34,15 +34,6 @@ typedef struct {
     unsigned int year;
 } Date;
 
-typedef struct {
-    int x_offset;
-    int y_offset;
-    int month;
-    int year;
-    Date highlight;
-    Days_of_Week week_start;
-} Options;
-
 typedef struct Calendar *CalendarPtr;
 
 CalendarPtr create_calendar(char *config_filename);
