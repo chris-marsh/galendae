@@ -25,6 +25,8 @@ background_color=#0a6cf5
 foreground_color=#dfdfdf
 # Dates of previous and following months, colored with CSS
 fringe_date_color=#a5a5a5
+# Highlight color for the current date
+highlight_color=#dfdfdf
 
 ### FONTS
 

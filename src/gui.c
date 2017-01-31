@@ -67,6 +67,7 @@ struct Calendar {
     char *background_color;
     char *foreground_color;
     char *fringe_date_color;
+    char *highlight_color;
     char *month_font_size;
     char *month_font_weight;
     char *day_font_size;
@@ -77,8 +78,8 @@ struct Calendar {
     char *arrow_font_weight;
     int close_on_unfocus;   /* 0=No , 1=Yes */
     int center;             /* 0=No , 1=Yes */
-    int undecorated;
-    int stick;
+    int undecorated;        /* 0=No , 1=Yes */
+    int stick;              /* 0=No , 1=Yes */
 };
 
 
@@ -299,24 +300,22 @@ static void on_key_press (GtkWidget *window, GdkEventKey *eventkey, CalendarPtr 
 static gboolean draw_callback (GtkWidget *widget, cairo_t *cr, CalendarPtr this)
 {
     GdkRGBA color;
-    GtkStyleContext *context;
+    gdk_rgba_parse(&color, this->highlight_color);
+    gdk_cairo_set_source_rgba(cr, &color);
+
     int cell_width = gtk_widget_get_allocated_width(GTK_WIDGET(widget)) / 7;
     int cell_height = gtk_widget_get_allocated_height(GTK_WIDGET(widget)) / 6;
 
-    context = gtk_widget_get_style_context (widget);
-    gtk_style_context_get_color (context, gtk_style_context_get_state (context), &color);
-    gdk_cairo_set_source_rgba (cr, &color);
-
     if (this->month == this->highlight_date.month &&
             this->year == this->highlight_date.year) {
-        cairo_arc (cr,
+        cairo_arc(cr,
                 (this->highlight_cell.column*cell_width)-(cell_width/2),
                 (this->highlight_cell.row*cell_height)-(cell_height/2),
                 (cell_height/2) - 1,
                 0, 2 * G_PI);
     }
+    cairo_stroke(cr);
 
-    cairo_stroke (cr);
     return FALSE;
 }
 
@@ -479,6 +478,7 @@ void set_default_config(CalendarPtr this)
 
     this->background_color = strdup("#afafaf");
     this->foreground_color = strdup("#000000");
+    this->highlight_color = strdup("#2f2f2f");
     this->fringe_date_color = strdup("#717171");
 
     this->month_font_size = strdup("1.0em");
@@ -529,6 +529,8 @@ CalendarPtr create_calendar(char *config_filename)
                     strfcpy(option.value, &this->foreground_color);
                 else if (strcmp(option.key, "fringe_date_color") == 0)
                     strfcpy(option.value, &this->fringe_date_color);
+                else if (strcmp(option.key, "highlight_color") == 0)
+                    strfcpy(option.value, &this->highlight_color);
 
                 else if (strcmp(option.key, "month_font_size") == 0)
                     strfcpy(option.value, &this->month_font_size);
@@ -592,6 +594,7 @@ void destroy_calendar(CalendarPtr this)
     free(this->background_color);
     free(this->foreground_color);
     free(this->fringe_date_color);
+    free(this->highlight_color);
     if (gtk_main_level() !=0 && this->window != NULL) {
         g_object_unref(this->drawing_area);
         g_object_unref(this->window);
