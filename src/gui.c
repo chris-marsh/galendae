@@ -542,7 +542,7 @@ CalendarPtr create_calendar(char *config_filename)
 
                 else if (strcmp(option.key, "date_font_size") == 0)
                     strfcpy(option.value, &this->date_font_size);
-                else if (strcmp(option.key, "day_font_weight") == 0)
+                else if (strcmp(option.key, "date_font_weight") == 0)
                     strfcpy(option.value, &this->date_font_weight);
 
                 else if (strcmp(option.key, "arrow_font_size") == 0)
@@ -557,6 +557,8 @@ CalendarPtr create_calendar(char *config_filename)
                         this->position = GTK_WIN_POS_MOUSE;
                     else
                         this->position = GTK_WIN_POS_NONE;
+                } else {
+                    printf("Unrecognised option in config file: %s = %s\n", option.key, option.value);
                 }
                 free_option(option);
             }
