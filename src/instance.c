@@ -119,6 +119,7 @@ void instance_free(InstancePtr this)
     if (this->pid_file)
         close(this->pid_file);
     unlink(this->pid_filename);
+    free(this->pid_filename);
     free(this);
 }
 
