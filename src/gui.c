@@ -14,6 +14,24 @@
 #include "common.h"
 
 
+typedef enum{
+    SUNDAY = 0,
+    MONDAY,
+    TUESDAY,
+    WEDNESDAY,
+    THURSDAY,
+    FRIDAY,
+    SATURDAY
+} Days_of_Week;
+
+
+typedef struct {
+    unsigned int day;
+    unsigned int month;
+    unsigned int year;
+} Date;
+
+
 struct Weekdays {
     char *longname;
     char *shortname;
@@ -391,14 +409,14 @@ GtkWidget* init_widgets(CalendarPtr this)
     g_signal_connect (G_OBJECT (this->drawing_area), "draw", G_CALLBACK (draw_callback), this);
     gtk_grid_attach(GTK_GRID(grid), this->drawing_area, 0, 2, 7, 6);
 
-    for (int row = 2; row<8; row++) {
-        for (int column=0; column<7; column++) {
+    for (int week = 2; week<8; week++) {
+        for (int day=0; day<7; day++) {
             label = gtk_label_new(NULL);
             gtk_widget_set_margin_bottom(GTK_WIDGET(label),5);
             gtk_widget_set_margin_top(GTK_WIDGET(label),5);
             gtk_widget_set_margin_start(GTK_WIDGET(label),11);
             gtk_widget_set_margin_end(GTK_WIDGET(label),11);
-            gtk_grid_attach(GTK_GRID(grid), label, column, row, 1, 1);
+            gtk_grid_attach(GTK_GRID(grid), label, day, week, 1, 1);
         }
     }
 

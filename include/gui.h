@@ -18,22 +18,6 @@
 
 #define MAX_YEAR (INT_MAX / 12 - 1)  /* Limited by the inc_month function */
 
-typedef enum{
-    SUNDAY = 0,
-    MONDAY,
-    TUESDAY,
-    WEDNESDAY,
-    THURSDAY,
-    FRIDAY,
-    SATURDAY
-} Days_of_Week;
-
-typedef struct {
-    unsigned int day;
-    unsigned int month;
-    unsigned int year;
-} Date;
-
 typedef struct Calendar *CalendarPtr;
 
 CalendarPtr create_calendar(char *config_filename);
