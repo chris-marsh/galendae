@@ -27,15 +27,15 @@ Galendae is derived from the Roman word [Kalendae](https://en.wikipedia.org/wiki
 
 galendae will look for a configuration file called galendaerc. It will search in the following order;
 
-    ./galendaerc
-    ~/.config/galendae/galendaerc
+    ./galendae.conf
+    ~/.config/galendae/galendae.conf
 
 You can specify alternatives configuration files with the '-c' option. You can specify a full path or just a filename. If you only give a filename, the same directories as above will be tried.
 
 ## Running
 
     $ galendae
-    $ galendae -c examples/blue-config
+    $ galendae -c config/blue.conf
 
 ## Useage
 
