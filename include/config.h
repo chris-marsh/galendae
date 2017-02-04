@@ -9,7 +9,7 @@
 #define CONFIG_H
 
 
-#define CONFIG_NAME APP_NAME "rc"
+#define CONFIG_NAME APP_NAME ".conf"
 
 
 /* Option pairs */

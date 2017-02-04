@@ -65,9 +65,11 @@ void free_option(Option option)
  *  Given a filename, check if it exists in the order of ...
  *          filename
  *          /home/user/.config/APP_NAME/filename
+ *          /usr/share/galendae/config/filename
  *  If filename is not given or found, look for
  *          CONFIG_NAME
  *          /home/user/.config/APP_NAME/CONFIG_NAME
+ *          /usr/share/APP_NAME/config/CONFIG_NAME
  */
 char *expand_config_filename(const char *user_filename) {
     char *filename;
@@ -88,8 +90,17 @@ char *expand_config_filename(const char *user_filename) {
         char *qual_filename = malloc(strlen(filepath)+strlen(APP_NAME)+strlen(filename)+3);
         sprintf(qual_filename, "%s%c%s%c%s", filepath, '/', APP_NAME, '/', filename);
         free(filepath);
-        free(filename);
-        return qual_filename;
+        if (access(qual_filename, R_OK) == 0) {
+            free(filename);
+            return qual_filename;
+        } else {
+            /* last attempt, try /usr/share/APP_NAME/config */
+            free(qual_filename);
+            qual_filename = malloc(strlen(APP_NAME)+strlen(filename)+20);
+            sprintf(qual_filename, "%s%s%s%s", "/usr/share/", APP_NAME, "/config/", filename);
+            free(filename);
+            return qual_filename;
+        }
     }
     return NULL;
 }
