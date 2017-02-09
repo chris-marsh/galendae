@@ -25,7 +25,7 @@ Galendae is derived from the Roman word [Kalendae](https://en.wikipedia.org/wiki
 
 ## Configuration
 
-galendae will look for a configuration file called galendaerc. It will search in the following order;
+galendae will look for a configuration file called galendae.conf. It will search in the following order;
 
     ./galendae.conf
     ~/.config/galendae/galendae.conf
