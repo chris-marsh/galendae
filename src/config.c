@@ -108,7 +108,8 @@ char *expand_config_filename(const char *user_filename) {
 
 /*
  * Config file format;
- *      Comments start with a '#' on the first character of the line
+ *      Comments start with a '#' or ';' on the first character of the line
+ *      
  *      Empty lines are ignored
  *      A valid config line contains '=' seperating vale & key
  */
@@ -116,7 +117,7 @@ static int parse_line(const char *line, char **key, char **value)
 {
     char *value_str;
     /*  Skip empty lines and comments */
-    if ((line[0] == '#') || (line[0] == '\n'))
+    if ((line[0] == ';') || (line[0] == '#') || (line[0] == '\n'))
         return FALSE;
     /* Get pointer to position of '=' if present */
     if (!(value_str = strchr(line, '=')))
