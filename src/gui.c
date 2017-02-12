@@ -313,6 +313,19 @@ static void on_key_press (GtkWidget *window, GdkEventKey *eventkey, CalendarPtr 
 
 
 /*
+ * Resize drawing area so it is a perfect multiple of columns and rows
+ */
+static void resize_drawing_area (GtkWidget *widget)
+{
+    gint widget_width = gtk_widget_get_allocated_width(GTK_WIDGET(widget));
+    gint widget_height = gtk_widget_get_allocated_height(GTK_WIDGET(widget));
+    while (widget_width % 14) widget_width += 1;
+    while (widget_height % 12) widget_height += 1;
+    gtk_widget_set_size_request(GTK_WIDGET(widget), widget_width, widget_height);
+}
+
+
+/*
  * Highlight a date by drawing a circle around it
  */
 static gboolean draw_callback (GtkWidget *widget, cairo_t *cr, CalendarPtr this)
@@ -407,6 +420,7 @@ GtkWidget* init_widgets(CalendarPtr this)
     this->drawing_area = gtk_drawing_area_new ();
     gtk_widget_set_name(GTK_WIDGET(this->drawing_area), "drawArea");
     g_signal_connect (G_OBJECT (this->drawing_area), "draw", G_CALLBACK (draw_callback), this);
+    g_signal_connect(GTK_WIDGET(this->drawing_area), "realize", G_CALLBACK(resize_drawing_area), NULL);
     gtk_grid_attach(GTK_GRID(grid), this->drawing_area, 0, 2, 7, 6);
 
     for (int week = 2; week<8; week++) {
