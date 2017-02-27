@@ -591,6 +591,11 @@ CalendarPtr create_calendar(char *config_filename)
                         this->position = GTK_WIN_POS_MOUSE;
                     else
                         this->position = GTK_WIN_POS_NONE;
+                }
+
+                else if (strcmp(option.key, "week_start") == 0) {
+                    this->week_start = atoi(option.value);
+
                 } else {
                     printf("Unrecognised option in config file: %s = %s\n", option.key, option.value);
                 }

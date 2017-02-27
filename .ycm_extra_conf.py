@@ -14,8 +14,7 @@ flags = [
     '-x', 'c',
     '-I', './',
     '-I', './include',
-    '-I', '../include',
-    '-I', '/usr/include/gtk-3.0',
+    '-I', '../include'
 ]
 
 flags += [s.strip() for s in str(subprocess.check_output(['pkg-config', '--cflags', '--libs', 'gtk+-3.0'])).strip().split(' ')]
