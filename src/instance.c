@@ -13,7 +13,7 @@
 #include <sys/file.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
-#include <sys/types.h>
+#include <signal.h>
 #include "instance.h"
 #include "common.h"
 
