@@ -24,6 +24,13 @@ typedef enum{
     SATURDAY
 } Days_of_Week;
 
+typedef enum{
+    TOP_RIGHT,
+    TOP_LEFT,
+    BOTTOM_RIGHT,
+    BOTTOM_LEFT
+} CustomPosition;
+
 
 typedef struct {
     unsigned int day;
@@ -75,6 +82,7 @@ struct Calendar {
     GtkWidget *window;
     GtkWidget *drawing_area;
     GtkWindowPosition position;
+    CustomPosition custom_position;
     unsigned int month;
     unsigned int year;
     Days_of_Week week_start;
@@ -313,6 +321,42 @@ static void on_key_press (GtkWidget *window, GdkEventKey *eventkey, CalendarPtr 
 
 
 /*
+ * Set the window position with users offsets andshow
+ */
+static void set_position(GtkWidget *eventbox, GdkEvent *UNUSED(event), CalendarPtr this)
+{
+    GdkGravity gravity = GDK_GRAVITY_NORTH_WEST;
+    int x_offset = this->x_offset, y_offset = this->y_offset;
+
+    if (this->position == GTK_WIN_POS_NONE) {
+        gint screen_width = gdk_screen_width(), screen_height = gdk_screen_height();
+        gint window_width = 0, window_height = 0;
+
+        gtk_window_get_size(GTK_WINDOW(this->window), &window_width, &window_height);
+
+        switch (this->custom_position) {
+            case TOP_RIGHT:
+                gravity = GDK_GRAVITY_NORTH_EAST;
+                x_offset = screen_width - window_width - x_offset;
+                break;
+            case BOTTOM_LEFT:
+                gravity = GDK_GRAVITY_SOUTH_WEST;
+                y_offset = screen_height - window_height - y_offset;
+                break;
+            case BOTTOM_RIGHT:
+                gravity = GDK_GRAVITY_SOUTH_EAST;
+                x_offset = screen_width - window_width - x_offset;
+                y_offset = screen_height - window_height - y_offset;
+                break;
+        }
+    }
+
+    gtk_window_set_gravity(GTK_WINDOW(this->window), gravity);
+    gtk_window_move(GTK_WINDOW(this->window), x_offset, y_offset);
+}
+
+
+/*
  * Resize drawing area so it is a perfect multiple of columns and rows
  */
 static void resize_drawing_area (GtkWidget *widget)
@@ -374,6 +418,7 @@ GtkWidget* init_widgets(CalendarPtr this)
     gtk_widget_set_name(GTK_WIDGET(window), "mainWindow");
     g_signal_connect(GTK_WINDOW(window), "key_press_event", G_CALLBACK(on_key_press), this);
     g_signal_connect(GTK_WINDOW(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(GTK_WINDOW(window), "size_allocate", G_CALLBACK(set_position), this);
     if (this->close_on_unfocus == 1)
         g_signal_connect(GTK_WINDOW(window),
                 "focus_out_event", G_CALLBACK(gtk_widget_destroy), NULL);
@@ -477,21 +522,6 @@ void set_style(CalendarPtr this)
 
 
 /*
- * Set the window position with users offsets andshow
- */
-static void show_calendar(CalendarPtr this)
-{
-    gint x_pos = 0, y_pos = 0;
-
-    gtk_window_set_position(GTK_WINDOW(this->window), this->position);
-    gtk_window_get_position(GTK_WINDOW(this->window), &x_pos, &y_pos);
-    gtk_window_move(GTK_WINDOW(this->window), this->x_offset + x_pos,  this->y_offset + y_pos);
-
-    gtk_widget_show_all(this->window);
-}
-
-
-/*
  * Provide default values if no config file is found
  */
 void set_default_config(CalendarPtr this)
@@ -589,8 +619,22 @@ CalendarPtr create_calendar(char *config_filename)
                         this->position = GTK_WIN_POS_CENTER;
                     else if (strcmp(option.value, "mouse") == 0)
                         this->position = GTK_WIN_POS_MOUSE;
-                    else
+                    else {
                         this->position = GTK_WIN_POS_NONE;
+
+                        if (strcmp(option.value, "top-left") == 0) {
+                            this->custom_position = TOP_LEFT;
+                        }
+                        else if (strcmp(option.value, "top-right") == 0) {
+                            this->custom_position = TOP_RIGHT;
+                        }
+                        else if (strcmp(option.value, "bottom-right") == 0) {
+                            this->custom_position = BOTTOM_RIGHT;
+                        }
+                        else if (strcmp(option.value, "bottom-left") == 0) {
+                            this->custom_position = BOTTOM_LEFT;
+                        }
+                    }
                 }
 
                 else if (strcmp(option.key, "week_start") == 0) {
@@ -608,7 +652,7 @@ CalendarPtr create_calendar(char *config_filename)
         this->window = init_widgets(this);
         update_calendar(this);
         set_style(this);
-        show_calendar(this);
+        gtk_widget_show_all(this->window);
     }
 
     return this;
