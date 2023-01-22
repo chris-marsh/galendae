@@ -337,6 +337,11 @@ static void set_position(GtkWidget *eventbox, GdkEvent *UNUSED(event), CalendarP
         gtk_window_get_size(GTK_WINDOW(this->window), &window_width, &window_height);
 
         switch (this->custom_position) {
+            case TOP_LEFT:
+                gravity = GDK_GRAVITY_NORTH_WEST;
+                x_offset = this->x_offset;
+                y_offset = this->y_offset;
+                break;
             case TOP_RIGHT:
                 gravity = GDK_GRAVITY_NORTH_EAST;
                 x_offset = screen_width - window_width - this->x_offset;
