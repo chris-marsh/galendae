@@ -325,8 +325,10 @@ static void on_key_press (GtkWidget *window, GdkEventKey *eventkey, CalendarPtr 
  */
 static void set_position(GtkWidget *eventbox, GdkEvent *UNUSED(event), CalendarPtr this)
 {
+    gint x_pos, y_pos;
     GdkGravity gravity = GDK_GRAVITY_NORTH_WEST;
-    int x_offset = this->x_offset, y_offset = this->y_offset;
+    gtk_window_get_position(GTK_WINDOW(this->window), &x_pos, &y_pos);
+    int x_offset = x_pos + this->x_offset, y_offset = y_pos + this->y_offset;
 
     if (this->position == GTK_WIN_POS_NONE) {
         gint screen_width = gdk_screen_width(), screen_height = gdk_screen_height();
@@ -337,16 +339,16 @@ static void set_position(GtkWidget *eventbox, GdkEvent *UNUSED(event), CalendarP
         switch (this->custom_position) {
             case TOP_RIGHT:
                 gravity = GDK_GRAVITY_NORTH_EAST;
-                x_offset = screen_width - window_width - x_offset;
+                x_offset = screen_width - window_width - this->x_offset;
                 break;
             case BOTTOM_LEFT:
                 gravity = GDK_GRAVITY_SOUTH_WEST;
-                y_offset = screen_height - window_height - y_offset;
+                y_offset = screen_height - window_height - this->y_offset;
                 break;
             case BOTTOM_RIGHT:
                 gravity = GDK_GRAVITY_SOUTH_EAST;
-                x_offset = screen_width - window_width - x_offset;
-                y_offset = screen_height - window_height - y_offset;
+                x_offset = screen_width - window_width - this->x_offset;
+                y_offset = screen_height - window_height - this->y_offset;
                 break;
         }
     }
@@ -557,6 +559,13 @@ void set_default_config(CalendarPtr this)
 }
 
 
+static void show_calendar(CalendarPtr this)
+{
+    gtk_window_set_position(GTK_WINDOW(this->window), this->position);
+    gtk_widget_show_all(this->window);
+}
+
+
 /*
  * Create an instance of the calendar window and load/set config options 
  */
@@ -652,7 +661,7 @@ CalendarPtr create_calendar(char *config_filename)
         this->window = init_widgets(this);
         update_calendar(this);
         set_style(this);
-        gtk_widget_show_all(this->window);
+        show_calendar(this);
     }
 
     return this;
